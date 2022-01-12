@@ -1,8 +1,8 @@
 // MCmesher
 // Kyle J Burgess
 
-#ifndef K13_MARCHING_CUBES_VECTOR_H
-#define K13_MARCHING_CUBES_VECTOR_H
+#ifndef MC_MESHER_VECTOR_H
+#define MC_MESHER_VECTOR_H
 
 #include <cmath>
 

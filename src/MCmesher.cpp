@@ -1,7 +1,7 @@
 // MCmesher
 // Kyle J Burgess
 
-#include "MarchingCubes.h"
+#include "MCmesher.h"
 #include "LookupTable.h"
 
 #include <stdexcept>

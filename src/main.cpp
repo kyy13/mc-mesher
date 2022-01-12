@@ -1,7 +1,7 @@
 // MCmesher TEST file
 // Kyle J Burgess
 
-#include "MarchingCubes.h"
+#include "MCmesher.h"
 
 #include <vector>
 #include <iostream>

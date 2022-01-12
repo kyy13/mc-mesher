@@ -8,7 +8,7 @@ project(MCmesher)
 add_library(
     ${PROJECT_NAME}
     SHARED
-    src/MarchingCubes.cpp
+    src/MCmesher.cpp
     src/Vector.cpp
 )
 

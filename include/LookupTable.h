@@ -1,8 +1,8 @@
 // MCmesher
 // Kyle J Burgess
 
-#ifndef K13_MARCHING_CUBES_LOOKUP_TABLE_H
-#define K13_MARCHING_CUBES_LOOKUP_TABLE_H
+#ifndef MC_MESHER_LOOKUP_TABLE_H
+#define MC_MESHER_LOOKUP_TABLE_H
 
 #include <Vector.h>
 #include <cstdint>
