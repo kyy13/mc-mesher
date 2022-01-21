@@ -518,8 +518,6 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
 
                     if (fabsf(d01.x) < epsilon && fabsf(d01.y) < epsilon && fabsf(d01.z) < epsilon)
                     {
-                        ++x;
-                        cubeOrigin.x += 1.0f;
                         continue;
                     }
 
@@ -527,8 +525,6 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
 
                     if (fabsf(d12.x) < epsilon && fabsf(d12.y) < epsilon && fabsf(d12.z) < epsilon)
                     {
-                        ++x;
-                        cubeOrigin.x += 1.0f;
                         continue;
                     }
 
@@ -536,8 +532,6 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
 
                     if (fabsf(d02.x) < epsilon && fabsf(d02.y) < epsilon && fabsf(d02.z) < epsilon)
                     {
-                        ++x;
-                        cubeOrigin.x += 1.0f;
                         continue;
                     }
 
