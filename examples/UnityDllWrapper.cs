@@ -105,33 +105,33 @@ public class MarchingCubeMeshGenerator
 
     protected IntPtr m_meshHandle;
 
-    [DllImport("libMarchingCubes", EntryPoint = "CreateMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "CreateMesh", CallingConvention = CallingConvention.Cdecl)]
     protected static extern IntPtr API_CreateMesh();
 
-    [DllImport("libMarchingCubes", EntryPoint = "DeleteMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "DeleteMesh", CallingConvention = CallingConvention.Cdecl)]
     protected static extern void API_DeleteMesh(IntPtr meshHandle);
 
-    [DllImport("libMarchingCubes", EntryPoint = "GenerateMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "GenerateMesh", CallingConvention = CallingConvention.Cdecl)]
     protected static extern void API_GenerateMesh(IntPtr meshHandle, float[,,] data, ref ScalarField field, ref CubeSlice slice, float isoLevel, bool computeFaceNormals, bool computeVertexNormals);
 
-    [DllImport("libMarchingCubes", EntryPoint = "GenerateMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "GenerateMesh", CallingConvention = CallingConvention.Cdecl)]
     protected static extern void API_GenerateMesh(IntPtr meshHandle, float[] data, ref ScalarField field, ref CubeSlice slice, float isoLevel, bool computeFaceNormals, bool computeVertexNormals);
 
-    [DllImport("libMarchingCubes", EntryPoint = "CountVertices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "CountVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountVertices(IntPtr meshHandle);
 
-    [DllImport("libMarchingCubes", EntryPoint = "CopyVertices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "CopyVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void API_CopyVertices(IntPtr meshHandle, void* dst);
 
-    [DllImport("libMarchingCubes", EntryPoint = "CountVertexNormals", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "CountVertexNormals", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountVertexNormals(IntPtr meshHandle);
 
-    [DllImport("libMarchingCubes", EntryPoint = "CopyVertexNormals", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "CopyVertexNormals", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void API_CopyVertexNormals(IntPtr meshHandle, void* dst);
 
-    [DllImport("libMarchingCubes", EntryPoint = "CountIndices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "CountIndices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountIndices(IntPtr meshHandle);
 
-    [DllImport("libMarchingCubes", EntryPoint = "CopyIndices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "CopyIndices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void API_CopyIndices(IntPtr meshHandle, void* dst);
 }
