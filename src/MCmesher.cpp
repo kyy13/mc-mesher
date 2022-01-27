@@ -10,52 +10,22 @@
 #include <cmath>
 #include <iostream>
 
-ScalarField::ScalarField()
-    : width(0)
-    , height(0)
-    , depth(0)
-{}
-
-ScalarField::ScalarField(uint32_t _width, uint32_t _height, uint32_t _depth)
-    : width(_width)
-    , height(_height)
-    , depth(_depth)
-{}
-
-CubeSlice::CubeSlice()
-    : x0(0)
-    , y0(0)
-    , z0(0)
-    , width(0)
-    , height(0)
-    , depth(0)
-{}
-
-CubeSlice::CubeSlice(uint32_t _x0, uint32_t _y0, uint32_t _z0, uint32_t _width, uint32_t _height, uint32_t _depth)
-    : x0(_x0)
-    , y0(_y0)
-    , z0(_z0)
-    , width(_width)
-    , height(_height)
-    , depth(_depth)
-{}
-
 struct Mesh
 {
-    std::vector<Vector3> vertices;
-    std::vector<Vector3> faceNormals;
-    std::vector<Vector3> vertexNormals;
+    std::vector<Vector3<float>> vertices;
+    std::vector<Vector3<float>> faceNormals;
+    std::vector<Vector3<float>> vertexNormals;
     std::vector<uint32_t> indices;
 };
 
 template<bool ComputeFaceNormals, bool ComputeVertexNormals>
-void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const CubeSlice& slice, float isoLevel)
+void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel)
 {
-    Vector3 triVertices[3];
-    Vector3 triNormals[3];
-    Vector3 cubeNormals[8];
+    Vector3<float> triVertices[3];
+    Vector3<float> triNormals[3];
+    Vector3<float> cubeNormals[8];
 
-    Vector3 triFaceNormal = {};
+    Vector3<float> triFaceNormal = {};
 
     float corner[8];
 
@@ -69,27 +39,19 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
     auto& vertexNormals = mesh->vertexNormals;
     auto& indices = mesh->indices;
 
-    uint32_t x0 = slice.x0;
-    uint32_t y0 = slice.y0;
-    uint32_t z0 = slice.z0;
+    const Vector3<uint32_t> regionEnd = meshOrigin + meshSize;
 
-    uint32_t x1 = x0 + slice.width;
-
-    if ((x1 >= field.width) || (x0 >= x1))
+    if ((regionEnd.x >= dataSize.x) || (meshOrigin.x >= regionEnd.x))
     {
         throw std::runtime_error("slice x-axis out of bounds of data field");
     }
 
-    uint32_t y1 = y0 + slice.height;
-
-    if ((y1 >= field.height) || (y0 >= y1))
+    if ((regionEnd.y >= dataSize.y) || (meshOrigin.y >= regionEnd.y))
     {
         throw std::runtime_error("slice y-axis out of bounds of data field");
     }
 
-    uint32_t z1 = z0 + slice.depth;
-
-    if ((z1 >= field.depth) || (z0 >= z1))
+    if ((regionEnd.z >= dataSize.z) || (meshOrigin.z >= regionEnd.z))
     {
         throw std::runtime_error("slice z-axis out of bounds of data field");
     }
@@ -101,32 +63,30 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
     faceNormals.clear();
     vertexNormals.clear();
 
-    uint32_t w = field.width;
-    uint32_t wh = field.width * field.height;
+    const uint32_t w = dataSize.x;
+    const uint32_t wh = dataSize.x * dataSize.y;
 
-    const float* voxel = &data[z0 * wh + y0 * w + x0];
+    const float* voxel = &data[meshOrigin.z * wh + meshOrigin.y * w + meshOrigin.x];
 
-    const float* px1 = &voxel[slice.width];
-    const float* py1 = &voxel[slice.height * w];
-    const float* pz1 = &voxel[slice.depth * wh];
+    const float* px1 = &voxel[meshSize.x];
+    const float* py1 = &voxel[meshSize.y * w];
+    const float* pz1 = &voxel[meshSize.z * wh];
 
-    uint32_t pdy = w - slice.width; // wrap to next y
-    uint32_t pdz = (field.height - slice.height) * w; // wrap to next z
+    uint32_t pdy = w - meshSize.x; // wrap to next y
+    uint32_t pdz = (dataSize.y - meshSize.y) * w; // wrap to next z
 
-    uint32_t x, y, z = z0;
+    uint32_t x, y, z = meshOrigin.z;
 
-    Vector3 fieldOrigin = {static_cast<float>(x0), static_cast<float>(y0), static_cast<float>(z0)};
-    Vector3 cubeOrigin = fieldOrigin;
+    const Vector3<float> fieldOrigin = {static_cast<float>(meshOrigin.x), static_cast<float>(meshOrigin.y), static_cast<float>(meshOrigin.z)};
 
-    // Field max cube x, y, z
-    uint32_t fieldCubeX1, fieldCubeY1, fieldCubeZ1;
+    Vector3<float> cubeOrigin = fieldOrigin;
 
-    if constexpr (ComputeVertexNormals)
-    {
-        fieldCubeX1 = field.width - 2;
-        fieldCubeY1 = field.height - 2;
-        fieldCubeZ1 = field.depth - 2;
-    }
+    const Vector3<uint32_t> maxCubeIndex =
+        {
+            .x = dataSize.x - 2,
+            .y = dataSize.y - 2,
+            .z = dataSize.z - 2,
+        };
 
     // Memory offset lookup table for cube and adjacent faces
 
@@ -168,8 +128,8 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
     int memOffsets[32];
 
     {
-        int mem_w = static_cast<int>(field.width);
-        int mem_wh = static_cast<int>(field.width * field.height);
+        int mem_w = static_cast<int>(dataSize.x);
+        int mem_wh = static_cast<int>(dataSize.x * dataSize.y);
 
         memOffsets[0] = 0;
         memOffsets[1] = 1;
@@ -258,7 +218,7 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
 
     for (; voxel != pz1; voxel += pdz)
     {
-        y = y0;
+        y = meshOrigin.y;
         cubeOrigin.y = fieldOrigin.y;
 
         if constexpr (ComputeVertexNormals)
@@ -280,7 +240,7 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
             }
 
             // Clamp +Z adjacent memory offsets
-            if (z == fieldCubeZ1)
+            if (z == maxCubeIndex.z)
             {
                 memBoundedOffsets[20] = memOffsets[4];
                 memBoundedOffsets[21] = memOffsets[5];
@@ -298,7 +258,7 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
 
         for (; voxel != py1; voxel += pdy)
         {
-            x = x0;
+            x = meshOrigin.x;
             cubeOrigin.x = fieldOrigin.x;
 
             if constexpr (ComputeVertexNormals)
@@ -320,7 +280,7 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
                 }
 
                 // Clamp +Y adjacent memory offsets
-                if (y == fieldCubeY1)
+                if (y == maxCubeIndex.y)
                 {
                     memBoundedOffsets[12] = memOffsets[2];
                     memBoundedOffsets[13] = memOffsets[3];
@@ -394,7 +354,7 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
                     }
 
                     // Clamp +X adjacent memory offsets
-                    if (x == fieldCubeX1)
+                    if (x == maxCubeIndex.x)
                     {
                         memBoundedOffsets[4] = memOffsets[1];
                         memBoundedOffsets[5] = memOffsets[3];
@@ -486,13 +446,13 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
                         uint32_t endpointIndex0 = (vertexData >> 4u);
                         uint32_t endpointIndex1 = (vertexData & 0x0F);
 
-                        const Vector3& d0 = LookupTable::UnitCube[endpointIndex0];
+                        const Vector3<float>& d0 = LookupTable::UnitCube[endpointIndex0];
 
                         Vector3 endpoint = cubeOrigin + d0;
 
                         Vector3 dEndpoint = LookupTable::UnitCube[endpointIndex1] - d0;
 
-                        Vector3& normal0 = cubeNormals[endpointIndex0];
+                        const Vector3<float>& normal0 = cubeNormals[endpointIndex0];
 
                         Vector3 dNormal = cubeNormals[endpointIndex1] - normal0;
 
@@ -551,7 +511,7 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
                     }
                     else if constexpr (ComputeFaceNormals)
                     {
-                        triFaceNormal = Vector3::cross(d01, d02);
+                        triFaceNormal = Vector3<float>::cross(d01, d02);
                         triFaceNormal.normalize();
 
                         faceNormals.push_back(triFaceNormal);
@@ -582,28 +542,28 @@ void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const
     }
 }
 
-void GenerateMesh(Mesh* mesh, const float* data, const ScalarField& field, const CubeSlice& slice, float isoLevel, bool computeFaceNormals, bool computeVertexNormals)
+void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel, bool computeFaceNormals, bool computeVertexNormals)
 {
     if (computeFaceNormals)
     {
         if (computeVertexNormals)
         {
-            GenerateMesh<true, true>(mesh, data, field, slice, isoLevel);
+            GenerateMesh<true, true>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
         }
         else
         {
-            GenerateMesh<true, false>(mesh, data, field, slice, isoLevel);
+            GenerateMesh<true, false>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
         }
     }
     else
     {
         if (computeVertexNormals)
         {
-            GenerateMesh<false, true>(mesh, data, field, slice, isoLevel);
+            GenerateMesh<false, true>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
         }
         else
         {
-            GenerateMesh<false, false>(mesh, data, field, slice, isoLevel);
+            GenerateMesh<false, false>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
         }
     }
 }
@@ -623,14 +583,14 @@ uint32_t CountVertices(const Mesh* mesh)
     return mesh->vertices.size();
 }
 
-const Vector3* GetVertices(const Mesh* mesh)
+const Vector3<float>* GetVertices(const Mesh* mesh)
 {
     return mesh->vertices.data();
 }
 
-void CopyVertices(const Mesh* mesh, Vector3* dst)
+void CopyVertices(const Mesh* mesh, Vector3<float>* dst)
 {
-    memcpy(dst, mesh->vertices.data(), mesh->vertices.size() * sizeof(Vector3));
+    memcpy(dst, mesh->vertices.data(), mesh->vertices.size() * sizeof(Vector3<float>));
 }
 
 uint32_t CountFaceNormals(const Mesh* mesh)
@@ -638,14 +598,14 @@ uint32_t CountFaceNormals(const Mesh* mesh)
     return mesh->faceNormals.size();
 }
 
-const Vector3* GetFaceNormals(const Mesh* mesh)
+const Vector3<float>* GetFaceNormals(const Mesh* mesh)
 {
     return mesh->faceNormals.data();
 }
 
-void CopyFaceNormals(const Mesh* mesh, Vector3* dst)
+void CopyFaceNormals(const Mesh* mesh, Vector3<float>* dst)
 {
-    memcpy(dst, mesh->faceNormals.data(), mesh->faceNormals.size() * sizeof(Vector3));
+    memcpy(dst, mesh->faceNormals.data(), mesh->faceNormals.size() * sizeof(Vector3<float>));
 }
 
 uint32_t CountVertexNormals(const Mesh* mesh)
@@ -653,14 +613,14 @@ uint32_t CountVertexNormals(const Mesh* mesh)
     return mesh->vertexNormals.size();
 }
 
-const Vector3* GetVertexNormals(const Mesh* mesh)
+const Vector3<float>* GetVertexNormals(const Mesh* mesh)
 {
     return mesh->vertexNormals.data();
 }
 
-void CopyVertexNormals(const Mesh* mesh, Vector3* dst)
+void CopyVertexNormals(const Mesh* mesh, Vector3<float>* dst)
 {
-    memcpy(dst, mesh->vertexNormals.data(), mesh->vertexNormals.size() * sizeof(Vector3));
+    memcpy(dst, mesh->vertexNormals.data(), mesh->vertexNormals.size() * sizeof(Vector3<float>));
 }
 
 uint32_t CountIndices(const Mesh* mesh)

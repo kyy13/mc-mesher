@@ -12,11 +12,12 @@ struct Vector2
     float y;
 };
 
+template<class T>
 struct Vector3
 {
-    float x;
-    float y;
-    float z;
+    T x;
+    T y;
+    T z;
 
     constexpr Vector3 operator+(const Vector3& v) const
     {
@@ -54,10 +55,29 @@ struct Vector3
         };
     }
 
-    void normalize();
+    void normalize()
+    {
+        static_assert(std::is_floating_point<T>::value, "cannot normalize an integral vector type!");
+
+        T oneOverLen;
+
+        if constexpr (sizeof(T) == 4u)
+        {
+            oneOverLen = 1.0f / sqrtf(x * x + y * y + z * z);
+        }
+        else
+        {
+            oneOverLen = 1.0 / sqrt(x * x + y * y + z * z);
+        }
+
+        x *= oneOverLen;
+        y *= oneOverLen;
+        z *= oneOverLen;
+    }
 };
 
-constexpr Vector3 operator*(float k, const Vector3& v)
+template<class T>
+constexpr Vector3<T> operator*(T k, const Vector3<T>& v)
 {
     return {
         .x = k * v.x,

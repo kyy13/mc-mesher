@@ -11,34 +11,6 @@ extern "C"
 {
     struct Mesh;
 
-    // Describes the dimensions of a float* set of values
-    struct ScalarField
-    {
-        ScalarField();
-
-        ScalarField(uint32_t width, uint32_t height, uint32_t depth);
-
-        uint32_t width; // x axis
-        uint32_t height; // y axis
-        uint32_t depth; // z axis
-    };
-
-    // Defines a region of a scalar field
-    struct CubeSlice
-    {
-        CubeSlice();
-
-        CubeSlice(uint32_t x0, uint32_t y0, uint32_t z0, uint32_t width, uint32_t height, uint32_t depth);
-
-        uint32_t x0;
-        uint32_t y0;
-        uint32_t z0;
-
-        uint32_t width; // x axis (in cubes, e.g. max is field width - 1)
-        uint32_t height; // y axis (in cubes, e.g. max is field width - 1)
-        uint32_t depth; // z axis (in cubes, e.g. max is field width - 1)
-    };
-
     // Create a mesh and return a handle to the mesh
     Mesh* __cdecl CreateMesh();
 
@@ -49,8 +21,9 @@ extern "C"
     void __cdecl GenerateMesh(
         Mesh* mesh,
         const float* data,
-        const ScalarField& field,
-        const CubeSlice& slice,
+        Vector3<uint32_t> dataSize,   // size of scalar field data (points)
+        Vector3<uint32_t> meshOrigin, // mesh origin in scalar field (cubes)
+        Vector3<uint32_t> meshSize,   // mesh size in scalar field (cubes)
         float isoLevel,
         bool computeFaceNormals,
         bool computeVertexNormals);
@@ -59,28 +32,28 @@ extern "C"
     uint32_t __cdecl CountVertices(const Mesh* mesh);
 
     // Returns a pointer to the mesh vertices
-    const Vector3* __cdecl GetVertices(const Mesh* mesh);
+    const Vector3<float>* __cdecl GetVertices(const Mesh* mesh);
 
     // Copies vertices into another array
-    void __cdecl CopyVertices(const Mesh* mesh, Vector3* dst);
+    void __cdecl CopyVertices(const Mesh* mesh, Vector3<float>* dst);
 
     // Count the number of face normals in the mesh
     uint32_t __cdecl CountFaceNormals(const Mesh* mesh);
 
     // Returns a pointer to the mesh face normal vectors
-    const Vector3* __cdecl GetFaceNormals(const Mesh* mesh);
+    const Vector3<float>* __cdecl GetFaceNormals(const Mesh* mesh);
 
     // Copies face normals into another array
-    void __cdecl CopyFaceNormals(const Mesh* mesh, Vector3* dst);
+    void __cdecl CopyFaceNormals(const Mesh* mesh, Vector3<float>* dst);
 
     // Count the number of vertex normals in the mesh
     uint32_t __cdecl CountVertexNormals(const Mesh* mesh);
 
     // Returns a pointer to the mesh vertex normal vectors
-    const Vector3* __cdecl GetVertexNormals(const Mesh* mesh);
+    const Vector3<float>* __cdecl GetVertexNormals(const Mesh* mesh);
 
     // Copies vertex normals into another array
-    void __cdecl CopyVertexNormals(const Mesh* mesh, Vector3* dst);
+    void __cdecl CopyVertexNormals(const Mesh* mesh, Vector3<float>* dst);
 
     // Count the number of indices in the mesh
     uint32_t __cdecl CountIndices(const Mesh* mesh);

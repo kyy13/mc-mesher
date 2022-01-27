@@ -9,7 +9,6 @@ add_library(
     ${PROJECT_NAME}
     SHARED
     src/MCmesher.cpp
-    src/Vector.cpp
 )
 
 add_executable(

@@ -1,3 +1,6 @@
+// MCmesher
+// Kyle J Burgess
+
 using System;
 using System.Runtime.InteropServices;
 using System.Collections;
@@ -8,25 +11,14 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System.Diagnostics;
 
-public class MarchingCubeMeshGenerator
+public class MCmesher
 {
     [StructLayout(LayoutKind.Explicit)]
-    public struct ScalarField
+    public struct Vector3u
     {
-        [FieldOffset(0)] public uint width;
-        [FieldOffset(4)] public uint height;
-        [FieldOffset(8)] public uint depth;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    public struct CubeSlice
-    {
-        [FieldOffset(0)] public uint x0;
-        [FieldOffset(4)] public uint y0;
-        [FieldOffset(8)] public uint z0;
-        [FieldOffset(12)] public uint width;
-        [FieldOffset(16)] public uint height;
-        [FieldOffset(20)] public uint depth;
+        [FieldOffset(0)] public uint x;
+        [FieldOffset(4)] public uint y;
+        [FieldOffset(8)] public uint z;
     }
 
     // Allocate intermediate mesh data (once for every mesh that's generated here)
@@ -42,16 +34,23 @@ public class MarchingCubeMeshGenerator
     }
 
     // Generate a procedural mesh
-    public void GenerateMesh(MeshFilter meshFilter, float[,,] voxelData, ref ScalarField field, ref CubeSlice slice)
+    // dataSize    size of scalar field data (points)
+    // meshOrigin  mesh origin in scalar field (cubes)
+    // meshSize    mesh size in scalar field (cubes)
+    public void GenerateMesh(MeshFilter meshFilter, float[,,] voxelData, Vector3u dataSize, Vector3u meshOrigin, Vector3u meshSize)
     {
-        API_GenerateMesh(m_meshHandle, voxelData, ref field, ref slice, 0.5f, false, true);
+        API_GenerateMesh(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, 0.5f, false, true);
 
         _GenerateMesh(meshFilter);
     }
 
-    public void GenerateMesh(MeshFilter meshFilter, float[] voxelData, ref ScalarField field, ref CubeSlice slice)
+    // Generate a procedural mesh
+    // dataSize    size of scalar field data (points)
+    // meshOrigin  mesh origin in scalar field (cubes)
+    // meshSize    mesh size in scalar field (cubes)
+    public void GenerateMesh(MeshFilter meshFilter, float[] voxelData, Vector3u dataSize, Vector3u meshOrigin, Vector3u meshSize)
     {
-        API_GenerateMesh(m_meshHandle, voxelData, ref field, ref slice, 0.5f, false, true);
+        API_GenerateMesh(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, 0.5f, false, true);
 
         _GenerateMesh(meshFilter);
     }
@@ -112,10 +111,25 @@ public class MarchingCubeMeshGenerator
     protected static extern void API_DeleteMesh(IntPtr meshHandle);
 
     [DllImport("libMCmesher", EntryPoint = "GenerateMesh", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern void API_GenerateMesh(IntPtr meshHandle, float[,,] data, ref ScalarField field, ref CubeSlice slice, float isoLevel, bool computeFaceNormals, bool computeVertexNormals);
+    protected static extern void API_GenerateMesh(
+        IntPtr meshHandle,
+        float[,,] data,
+        Vector3u dataSize,   // size of scalar field data (points)
+        Vector3u meshOrigin, // mesh origin in scalar field (cubes)
+        Vector3u meshSize,   // mesh size in scalar field (cubes)
+        float isoLevel,
+        bool computeFaceNormals,
+        bool computeVertexNormals);
 
     [DllImport("libMCmesher", EntryPoint = "GenerateMesh", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern void API_GenerateMesh(IntPtr meshHandle, float[] data, ref ScalarField field, ref CubeSlice slice, float isoLevel, bool computeFaceNormals, bool computeVertexNormals);
+    protected static extern void API_GenerateMesh(IntPtr meshHandle,
+        float[] data,
+        Vector3u dataSize,   // size of scalar field data (points)
+        Vector3u meshOrigin, // mesh origin in scalar field (cubes)
+        Vector3u meshSize,   // mesh size in scalar field (cubes)
+        float isoLevel,
+        bool computeFaceNormals,
+        bool computeVertexNormals);
 
     [DllImport("libMCmesher", EntryPoint = "CountVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountVertices(IntPtr meshHandle);
