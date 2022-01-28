@@ -9,6 +9,7 @@
 #include <cstring>
 #include <cmath>
 #include <iostream>
+#include <unordered_map>
 
 struct Mesh
 {
@@ -21,23 +22,10 @@ struct Mesh
 template<bool ComputeFaceNormals, bool ComputeVertexNormals>
 void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel)
 {
-    Vector3<float> triVertices[3];
-    Vector3<float> triNormals[3];
-    Vector3<float> cubeNormals[8];
-
-    Vector3<float> triFaceNormal = {};
-
-    float corner[8];
-
     if (mesh == nullptr)
     {
         throw std::runtime_error("called GenerateMesh() on null mesh");
     }
-
-    auto& vertices = mesh->vertices;
-    auto& faceNormals = mesh->faceNormals;
-    auto& vertexNormals = mesh->vertexNormals;
-    auto& indices = mesh->indices;
 
     const Vector3<uint32_t> regionEnd = meshOrigin + meshSize;
 
@@ -55,6 +43,29 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
     {
         throw std::runtime_error("slice z-axis out of bounds of data field");
     }
+
+    struct VertexCacheEntry
+    {
+        Vector3<float> p;
+        Vector3<float> n;
+        uint32_t i;
+    };
+
+    std::unordered_map<uint32_t, VertexCacheEntry> vertexCache;
+
+    VertexCacheEntry* vertexCacheEntries[3];
+
+    Vector3<float> triVertices[3];
+    Vector3<float> triNormals[3];
+    Vector3<float> cubeNormals[8];
+    Vector3<float> triFaceNormal = {};
+
+    float corner[8];
+
+    auto& vertices = mesh->vertices;
+    auto& faceNormals = mesh->faceNormals;
+    auto& vertexNormals = mesh->vertexNormals;
+    auto& indices = mesh->indices;
 
     uint32_t vertexCount = 0;
 
@@ -440,93 +451,146 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                     for (uint32_t j = 0; j != 3; ++j)
                     {
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
-
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
-                        uint32_t endpointIndex0 = (vertexData >> 4u);
-                        uint32_t endpointIndex1 = (vertexData & 0x0F);
+                        const uint32_t endpointIndex[2] =
+                            {
+                                vertexData >> 4u,
+                                vertexData & 0x0F,
+                            };
 
-                        const Vector3<float>& d0 = LookupTable::UnitCube[endpointIndex0];
+                        /*
+                         *      edge key = (c index) * 3 + edge key
+                         *
+                         *            c4 (e#2)
+                         *            |
+                         *            |                     z
+                         *            |                     |
+                         *            c ------- c2 (e#1)    o----> y
+                         *           /                     /
+                         *          /                     x
+                         *         c1 (e#0)
+                         */
 
-                        Vector3 endpoint = cubeOrigin + d0;
+                        const uint32_t cacheBits = LookupTable::EdgeCacheBits[endpointIndex[0] | (endpointIndex[1] << 3)];
 
-                        Vector3 dEndpoint = LookupTable::UnitCube[endpointIndex1] - d0;
+                        uint32_t cacheKey = (x + w * y + wh * z);
 
-                        const Vector3<float>& normal0 = cubeNormals[endpointIndex0];
+                        if ((cacheBits & (1 << 2)) != 0) cacheKey += 1;
+                        if ((cacheBits & (1 << 3)) != 0) cacheKey += w;
+                        if ((cacheBits & (1 << 4)) != 0) cacheKey += wh;
 
-                        Vector3 dNormal = cubeNormals[endpointIndex1] - normal0;
+                        cacheKey = 3u * cacheKey + (cacheBits & 0b11u);
 
-                        // Lerp factor between endpoints
-                        float k = (isoLevel - corner[endpointIndex0]) / (corner[endpointIndex1] - corner[endpointIndex0]);
+                        auto it = vertexCache.find(cacheKey);
 
-                        // Lerp vertices
-                        triVertices[j] = endpoint + k * dEndpoint;
-
-                        // Lerp vertex normals
-                        if constexpr (ComputeVertexNormals)
+                        if (it != vertexCache.end())
                         {
+                            vertexCacheEntries[j] = &it->second;
 
-                            triNormals[j] = normal0 + k * dNormal;
-                            triNormals[j].normalize();
+//                            triVertices[j] = entry.p;
+//
+//                            if constexpr (ComputeVertexNormals)
+//                            {
+//                                triNormals[j] = entry.n;
+//                            }
+                        }
+                        else
+                        {
+                            const Vector3<float>& d0 = LookupTable::UnitCube[endpointIndex[0]];
+                            const Vector3<float> endpoint = cubeOrigin + d0;
+                            const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - d0;
+
+                            // Lerp factor between endpoints
+                            float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
+
+                            // Lerp vertices
+                            triVertices[j] = endpoint + k * dEndpoint;
+
+                            // Lerp vertex normals
+                            if constexpr (ComputeVertexNormals)
+                            {
+                                const Vector3<float>& normal0 = cubeNormals[endpointIndex[0]];
+                                const Vector3<float> dNormal = cubeNormals[endpointIndex[1]] - normal0;
+
+                                triNormals[j] = normal0 + k * dNormal;
+                                triNormals[j].normalize();
+                            }
+
+                            // Cache
+                            vertexCacheEntries[j] = &vertexCache[cacheKey];
+
+                            *vertexCacheEntries[j] =
+                                {
+                                    .p = triVertices[j],
+                                    .n = triNormals[j],
+                                    .i = 0xffffffffu,
+                                };
                         }
                     }
 
                     // Calculate triangle segments that are too small to render
                     constexpr float epsilon = 0.0000001f;
 
-                    Vector3 d01 = triVertices[1] - triVertices[0];
+                    Vector3 d01 = vertexCacheEntries[1]->p - vertexCacheEntries[0]->p;
 
                     if (fabsf(d01.x) < epsilon && fabsf(d01.y) < epsilon && fabsf(d01.z) < epsilon)
                     {
                         continue;
                     }
 
-                    Vector3 d12 = triVertices[2] - triVertices[1];
+                    Vector3 d12 = vertexCacheEntries[2]->p - vertexCacheEntries[1]->p;
 
                     if (fabsf(d12.x) < epsilon && fabsf(d12.y) < epsilon && fabsf(d12.z) < epsilon)
                     {
                         continue;
                     }
 
-                    Vector3 d02 = triVertices[2] - triVertices[0];
+                    Vector3 d02 = vertexCacheEntries[2]->p - vertexCacheEntries[0]->p;
 
                     if (fabsf(d02.x) < epsilon && fabsf(d02.y) < epsilon && fabsf(d02.z) < epsilon)
                     {
                         continue;
                     }
 
-                    // Set vertices
-
-                    vertices.push_back(triVertices[0]);
-                    vertices.push_back(triVertices[1]);
-                    vertices.push_back(triVertices[2]);
-
-                    // Set normals
-
                     if constexpr (ComputeVertexNormals)
                     {
-                        vertexNormals.push_back(triNormals[0]);
-                        vertexNormals.push_back(triNormals[1]);
-                        vertexNormals.push_back(triNormals[2]);
+                        for (auto entry : vertexCacheEntries)
+                        {
+                            if (entry->i == 0xffffffffu)
+                            {
+                                vertices.push_back(entry->p);
+                                vertexNormals.push_back(entry->n);
+                                indices.push_back(vertexCount);
+                                entry->i = vertexCount;
+                                ++vertexCount;
+                            }
+                            else
+                            {
+                                indices.push_back(entry->i);
+                            }
+                        }
                     }
                     else if constexpr (ComputeFaceNormals)
                     {
+                        vertices.push_back(vertexCacheEntries[0]->p);
+                        vertices.push_back(vertexCacheEntries[1]->p);
+                        vertices.push_back(vertexCacheEntries[2]->p);
+
                         triFaceNormal = Vector3<float>::cross(d01, d02);
                         triFaceNormal.normalize();
 
                         faceNormals.push_back(triFaceNormal);
                         faceNormals.push_back(triFaceNormal);
                         faceNormals.push_back(triFaceNormal);
+
+                        indices.push_back(vertexCount);
+                        ++vertexCount;
+                        indices.push_back(vertexCount);
+                        ++vertexCount;
+                        indices.push_back(vertexCount);
+                        ++vertexCount;
                     }
-
-                    // Set indices
-
-                    indices.push_back(vertexCount);
-                    ++vertexCount;
-                    indices.push_back(vertexCount);
-                    ++vertexCount;
-                    indices.push_back(vertexCount);
-                    ++vertexCount;
                 }
                 ++x;
                 cubeOrigin.x += 1.0f;
