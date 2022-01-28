@@ -453,12 +453,6 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
-                        const uint32_t endpointIndex[2] =
-                            {
-                                vertexData >> 4u,
-                                vertexData & 0x0F,
-                            };
-
                         /*
                          *      edge key = (c index) * 3 + edge key
                          *
@@ -472,7 +466,7 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                          *         c1 (e#0)
                          */
 
-                        const uint32_t cacheBits = LookupTable::EdgeCacheBits[endpointIndex[0] | (endpointIndex[1] << 3)];
+                        const uint32_t cacheBits = LookupTable::EdgeCacheBits[vertexData];
 
                         uint32_t cacheKey = (x + w * y + wh * z);
 
@@ -497,6 +491,12 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                         }
                         else
                         {
+                            const uint32_t endpointIndex[2] =
+                                {
+                                    vertexData >> 3u,
+                                    vertexData & 0x07u,
+                                };
+
                             const Vector3<float>& d0 = LookupTable::UnitCube[endpointIndex[0]];
                             const Vector3<float> endpoint = cubeOrigin + d0;
                             const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - d0;
