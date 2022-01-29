@@ -10,16 +10,16 @@
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
+#include <cassert>
 
 struct Mesh
 {
     std::vector<Vector3<float>> vertices;
-    std::vector<Vector3<float>> faceNormals;
-    std::vector<Vector3<float>> vertexNormals;
+    std::vector<Vector3<float>> normals;
     std::vector<uint32_t> indices;
 };
 
-template<bool ComputeFaceNormals, bool ComputeVertexNormals>
+template<bool ComputeVertexNormals>
 void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel)
 {
     if (mesh == nullptr)
@@ -55,29 +55,27 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
 
     VertexCacheEntry* vertexCacheEntries[3];
 
-    Vector3<float> triVertices[3];
-    Vector3<float> triNormals[3];
+    //Vector3<float> triVertices[3];
+    //Vector3<float> triNormals[3];
     Vector3<float> cubeNormals[8];
-    Vector3<float> triFaceNormal = {};
 
     float corner[8];
 
     auto& vertices = mesh->vertices;
-    auto& faceNormals = mesh->faceNormals;
-    auto& vertexNormals = mesh->vertexNormals;
+    auto& normals = mesh->normals;
     auto& indices = mesh->indices;
 
     uint32_t vertexCount = 0;
 
     vertices.clear();
     indices.clear();
-    faceNormals.clear();
-    vertexNormals.clear();
+    normals.clear();
 
     const uint32_t w = dataSize.x;
     const uint32_t wh = dataSize.x * dataSize.y;
 
-    const float* voxel = &data[meshOrigin.z * wh + meshOrigin.y * w + meshOrigin.x];
+    const float* origin = &data[meshOrigin.z * wh + meshOrigin.y * w + meshOrigin.x];
+    const float* voxel = origin;
 
     const float* px1 = &voxel[meshSize.x];
     const float* py1 = &voxel[meshSize.y * w];
@@ -468,11 +466,11 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
 
                         const uint32_t cacheBits = LookupTable::EdgeCacheBits[vertexData];
 
-                        uint32_t cacheKey = (x + w * y + wh * z);
+                        uint32_t cacheKey = voxel - origin;
 
-                        if ((cacheBits & (1 << 2)) != 0) cacheKey += 1;
-                        if ((cacheBits & (1 << 3)) != 0) cacheKey += w;
-                        if ((cacheBits & (1 << 4)) != 0) cacheKey += wh;
+                        if ((cacheBits & 4u ) != 0) cacheKey += 1;
+                        if ((cacheBits & 8u ) != 0) cacheKey += w;
+                        if ((cacheBits & 16u) != 0) cacheKey += wh;
 
                         cacheKey = 3u * cacheKey + (cacheBits & 0b11u);
 
@@ -481,16 +479,11 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                         if (it != vertexCache.end())
                         {
                             vertexCacheEntries[j] = &it->second;
-
-//                            triVertices[j] = entry.p;
-//
-//                            if constexpr (ComputeVertexNormals)
-//                            {
-//                                triNormals[j] = entry.n;
-//                            }
                         }
                         else
                         {
+                            auto cacheEntry = &vertexCache[cacheKey];
+
                             const uint32_t endpointIndex[2] =
                                 {
                                     vertexData >> 3u,
@@ -505,7 +498,7 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                             float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
 
                             // Lerp vertices
-                            triVertices[j] = endpoint + k * dEndpoint;
+                            cacheEntry->p = endpoint + k * dEndpoint;
 
                             // Lerp vertex normals
                             if constexpr (ComputeVertexNormals)
@@ -513,19 +506,13 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                                 const Vector3<float>& normal0 = cubeNormals[endpointIndex[0]];
                                 const Vector3<float> dNormal = cubeNormals[endpointIndex[1]] - normal0;
 
-                                triNormals[j] = normal0 + k * dNormal;
-                                triNormals[j].normalize();
+                                cacheEntry->n = normal0 + k * dNormal;
+                                cacheEntry->n.normalize();
                             }
 
                             // Cache
-                            vertexCacheEntries[j] = &vertexCache[cacheKey];
-
-                            *vertexCacheEntries[j] =
-                                {
-                                    .p = triVertices[j],
-                                    .n = triNormals[j],
-                                    .i = 0xffffffffu,
-                                };
+                            cacheEntry->i = 0xffffffffu;
+                            vertexCacheEntries[j] = cacheEntry;
                         }
                     }
 
@@ -560,7 +547,7 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                             if (entry->i == 0xffffffffu)
                             {
                                 vertices.push_back(entry->p);
-                                vertexNormals.push_back(entry->n);
+                                normals.push_back(entry->n);
                                 indices.push_back(vertexCount);
                                 entry->i = vertexCount;
                                 ++vertexCount;
@@ -571,18 +558,18 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
                             }
                         }
                     }
-                    else if constexpr (ComputeFaceNormals)
+                    else
                     {
                         vertices.push_back(vertexCacheEntries[0]->p);
                         vertices.push_back(vertexCacheEntries[1]->p);
                         vertices.push_back(vertexCacheEntries[2]->p);
 
-                        triFaceNormal = Vector3<float>::cross(d01, d02);
+                        Vector3<float> triFaceNormal = Vector3<float>::cross(d01, d02);
                         triFaceNormal.normalize();
 
-                        faceNormals.push_back(triFaceNormal);
-                        faceNormals.push_back(triFaceNormal);
-                        faceNormals.push_back(triFaceNormal);
+                        normals.push_back(triFaceNormal);
+                        normals.push_back(triFaceNormal);
+                        normals.push_back(triFaceNormal);
 
                         indices.push_back(vertexCount);
                         ++vertexCount;
@@ -606,29 +593,15 @@ void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vec
     }
 }
 
-void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel, bool computeFaceNormals, bool computeVertexNormals)
+void GenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel, bool vertexNormals)
 {
-    if (computeFaceNormals)
+    if (vertexNormals)
     {
-        if (computeVertexNormals)
-        {
-            GenerateMesh<true, true>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
-        }
-        else
-        {
-            GenerateMesh<true, false>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
-        }
+        GenerateMesh<true>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
     }
     else
     {
-        if (computeVertexNormals)
-        {
-            GenerateMesh<false, true>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
-        }
-        else
-        {
-            GenerateMesh<false, false>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
-        }
+        GenerateMesh<false>(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
     }
 }
 
@@ -657,34 +630,19 @@ void CopyVertices(const Mesh* mesh, Vector3<float>* dst)
     memcpy(dst, mesh->vertices.data(), mesh->vertices.size() * sizeof(Vector3<float>));
 }
 
-uint32_t CountFaceNormals(const Mesh* mesh)
+uint32_t CountNormals(const Mesh* mesh)
 {
-    return mesh->faceNormals.size();
+    return mesh->normals.size();
 }
 
-const Vector3<float>* GetFaceNormals(const Mesh* mesh)
+const Vector3<float>* GetNormals(const Mesh* mesh)
 {
-    return mesh->faceNormals.data();
+    return mesh->normals.data();
 }
 
-void CopyFaceNormals(const Mesh* mesh, Vector3<float>* dst)
+void CopyNormals(const Mesh* mesh, Vector3<float>* dst)
 {
-    memcpy(dst, mesh->faceNormals.data(), mesh->faceNormals.size() * sizeof(Vector3<float>));
-}
-
-uint32_t CountVertexNormals(const Mesh* mesh)
-{
-    return mesh->vertexNormals.size();
-}
-
-const Vector3<float>* GetVertexNormals(const Mesh* mesh)
-{
-    return mesh->vertexNormals.data();
-}
-
-void CopyVertexNormals(const Mesh* mesh, Vector3<float>* dst)
-{
-    memcpy(dst, mesh->vertexNormals.data(), mesh->vertexNormals.size() * sizeof(Vector3<float>));
+    memcpy(dst, mesh->normals.data(), mesh->normals.size() * sizeof(Vector3<float>));
 }
 
 uint32_t CountIndices(const Mesh* mesh)

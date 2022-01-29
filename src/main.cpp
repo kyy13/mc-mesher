@@ -454,7 +454,7 @@ int main()
             .z = 3,
         };
 
-    GenerateMesh(mesh, data.data(), dataSize, meshOrigin, meshSize, 0.5f, true, true);
+    GenerateMesh(mesh, data.data(), dataSize, meshOrigin, meshSize, 0.5f, true);
 
     size_t size = CountIndices(mesh);
     const uint32_t* arr = GetIndices(mesh);

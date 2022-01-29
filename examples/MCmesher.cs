@@ -37,9 +37,16 @@ public class MCmesher
     // dataSize    size of scalar field data (points)
     // meshOrigin  mesh origin in scalar field (cubes)
     // meshSize    mesh size in scalar field (cubes)
-    public void GenerateMesh(MeshFilter meshFilter, float[,,] voxelData, Vector3u dataSize, Vector3u meshOrigin, Vector3u meshSize)
+    public void GenerateMesh(
+        MeshFilter meshFilter,
+        float[,,] voxelData,
+        Vector3u dataSize,
+        Vector3u meshOrigin,
+        Vector3u meshSize,
+        float isoLevel = 0.5f,
+        bool vertexNormals = true)
     {
-        API_GenerateMesh(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, 0.5f, false, true);
+        API_GenerateMesh(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, isoLevel, vertexNormals);
 
         _GenerateMesh(meshFilter);
     }
@@ -48,9 +55,16 @@ public class MCmesher
     // dataSize    size of scalar field data (points)
     // meshOrigin  mesh origin in scalar field (cubes)
     // meshSize    mesh size in scalar field (cubes)
-    public void GenerateMesh(MeshFilter meshFilter, float[] voxelData, Vector3u dataSize, Vector3u meshOrigin, Vector3u meshSize)
+    public void GenerateMesh(
+        MeshFilter meshFilter,
+        float[] voxelData,
+        Vector3u dataSize,
+        Vector3u meshOrigin,
+        Vector3u meshSize,
+        float isoLevel = 0.5f,
+        bool vertexNormals = true)
     {
-        API_GenerateMesh(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, 0.5f, false, true);
+        API_GenerateMesh(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, isoLevel, vertexNormals);
 
         _GenerateMesh(meshFilter);
     }
@@ -78,7 +92,7 @@ public class MCmesher
 
         unsafe
         {
-            API_CopyVertexNormals(m_meshHandle, NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(normals));
+            API_CopyNormals(m_meshHandle, NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(normals));
         }
 
         data.SetIndexBufferParams(indexCount, IndexFormat.UInt32);
@@ -114,22 +128,20 @@ public class MCmesher
     protected static extern void API_GenerateMesh(
         IntPtr meshHandle,
         float[,,] data,
-        Vector3u dataSize,   // size of scalar field data (points)
-        Vector3u meshOrigin, // mesh origin in scalar field (cubes)
-        Vector3u meshSize,   // mesh size in scalar field (cubes)
+        Vector3u dataSize,        // size of scalar field data (points)
+        Vector3u meshOrigin,      // mesh origin in scalar field (cubes)
+        Vector3u meshSize,        // mesh size in scalar field (cubes)
         float isoLevel,
-        bool computeFaceNormals,
-        bool computeVertexNormals);
+        bool vertexNormals=true); // true = vertex normals, false = face normals
 
     [DllImport("libMCmesher", EntryPoint = "GenerateMesh", CallingConvention = CallingConvention.Cdecl)]
     protected static extern void API_GenerateMesh(IntPtr meshHandle,
         float[] data,
-        Vector3u dataSize,   // size of scalar field data (points)
-        Vector3u meshOrigin, // mesh origin in scalar field (cubes)
-        Vector3u meshSize,   // mesh size in scalar field (cubes)
+        Vector3u dataSize,        // size of scalar field data (points)
+        Vector3u meshOrigin,      // mesh origin in scalar field (cubes)
+        Vector3u meshSize,        // mesh size in scalar field (cubes)
         float isoLevel,
-        bool computeFaceNormals,
-        bool computeVertexNormals);
+        bool vertexNormals=true); // true = vertex normals, false = face normals
 
     [DllImport("libMCmesher", EntryPoint = "CountVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountVertices(IntPtr meshHandle);
@@ -137,11 +149,11 @@ public class MCmesher
     [DllImport("libMCmesher", EntryPoint = "CopyVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void API_CopyVertices(IntPtr meshHandle, void* dst);
 
-    [DllImport("libMCmesher", EntryPoint = "CountVertexNormals", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern uint API_CountVertexNormals(IntPtr meshHandle);
+    [DllImport("libMCmesher", EntryPoint = "CountNormals", CallingConvention = CallingConvention.Cdecl)]
+    protected static extern uint API_CountNormals(IntPtr meshHandle);
 
-    [DllImport("libMCmesher", EntryPoint = "CopyVertexNormals", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern unsafe void API_CopyVertexNormals(IntPtr meshHandle, void* dst);
+    [DllImport("libMCmesher", EntryPoint = "CopyNormals", CallingConvention = CallingConvention.Cdecl)]
+    protected static extern unsafe void API_CopyNormals(IntPtr meshHandle, void* dst);
 
     [DllImport("libMCmesher", EntryPoint = "CountIndices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountIndices(IntPtr meshHandle);
