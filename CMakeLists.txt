@@ -9,6 +9,9 @@ add_library(
     ${PROJECT_NAME}
     SHARED
     src/MCmesher.cpp
+    src/GenerateMeshFN.cpp
+    src/GenerateMeshVN.cpp
+    src/LookupTable.cpp
 )
 
 add_executable(
