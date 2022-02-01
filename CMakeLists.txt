@@ -65,7 +65,8 @@ IF(BUILD_TESTS)
     target_include_directories(
         ${PROJECT_NAME}
         PUBLIC
-        include
+        test/include
+        "test/ext/gradient-noise/include"
     )
 
     IF (CMAKE_BUILD_TYPE MATCHES Debug)
