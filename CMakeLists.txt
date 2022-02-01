@@ -55,46 +55,6 @@ target_link_libraries(
 )
 
 IF(BUILD_TESTS)
-    project(MCmesherTest)
-
-    add_executable(
-        ${PROJECT_NAME}
-        test/src/main.cpp
-    )
-
-    target_include_directories(
-        ${PROJECT_NAME}
-        PUBLIC
-        test/include
-        "test/ext/gradient-noise/include"
-    )
-
-    IF (CMAKE_BUILD_TYPE MATCHES Debug)
-        target_compile_options(
-            ${PROJECT_NAME}
-            PRIVATE
-            -Wall
-            -g
-        )
-    ELSE()
-        target_compile_options(
-            ${PROJECT_NAME}
-            PRIVATE
-            -O3
-        )
-    ENDIF()
-
-    target_link_libraries(
-        ${PROJECT_NAME}
-        MCmesher
-        -Wl,-allow-multiple-definition
-    )
-
-    set_target_properties(
-        ${PROJECT_NAME}
-        PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-        CXX_EXTENSIONS ON
-    )
+    enable_testing()
+    add_subdirectory(tests)
 ENDIF()

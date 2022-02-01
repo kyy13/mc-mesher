@@ -36,5 +36,7 @@ else
     mingw32-make
 }
 
+ctest
+
 Pause
 
