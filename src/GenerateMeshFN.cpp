@@ -82,13 +82,6 @@ GenerateMeshResult GenerateMeshFN(
 
     Vector3<float> cubeOrigin = fieldOrigin;
 
-    const Vector3<uint32_t> maxCubeIndex =
-        {
-            .x = dataSize.x - 2,
-            .y = dataSize.y - 2,
-            .z = dataSize.z - 2,
-        };
-
     // Memory offset lookup table for cube vertices
 
     /*

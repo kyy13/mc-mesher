@@ -4,6 +4,8 @@
 cmake_minimum_required(VERSION 3.7)
 project(MCmesher)
 
+option(BUILD_TESTS "set to on to build tests" ON)
+
 # library
 add_library(
     ${PROJECT_NAME}
@@ -14,11 +16,6 @@ add_library(
     src/LookupTable.cpp
 )
 
-add_executable(
-    MCmesherTest
-    src/main.cpp
-)
-
 # includes
 target_include_directories(
     ${PROJECT_NAME}
@@ -26,18 +23,17 @@ target_include_directories(
     include
 )
 
-# compiler options
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
-    add_compile_options(
-        MCmesherTest
-        PUBLIC
+    target_compile_options(
+        ${PROJECT_NAME}
+        PRIVATE
         -Wall
         -g
     )
 ELSE()
-    add_compile_options(
-        MCmesherTest
-        PUBLIC
+    target_compile_options(
+        ${PROJECT_NAME}
+        PRIVATE
         -O3
     )
 ENDIF()
@@ -45,7 +41,6 @@ ENDIF()
 # c++ version
 set_target_properties(
     ${PROJECT_NAME}
-    MCmesherTest
     PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
@@ -59,8 +54,46 @@ target_link_libraries(
     -static-libstdc++
 )
 
-target_link_libraries(
-    MCmesherTest
-    ${PROJECT_NAME}
-    -Wl,-allow-multiple-definition
-)
+IF(BUILD_TESTS)
+    project(MCmesherTest)
+
+    add_executable(
+        ${PROJECT_NAME}
+        test/src/main.cpp
+    )
+
+    target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC
+        include
+    )
+
+    IF (CMAKE_BUILD_TYPE MATCHES Debug)
+        target_compile_options(
+            ${PROJECT_NAME}
+            PRIVATE
+            -Wall
+            -g
+        )
+    ELSE()
+        target_compile_options(
+            ${PROJECT_NAME}
+            PRIVATE
+            -O3
+        )
+    ENDIF()
+
+    target_link_libraries(
+        ${PROJECT_NAME}
+        MCmesher
+        -Wl,-allow-multiple-definition
+    )
+
+    set_target_properties(
+        ${PROJECT_NAME}
+        PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS ON
+    )
+ENDIF()
