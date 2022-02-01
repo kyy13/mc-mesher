@@ -81,7 +81,7 @@ public class MCmesher
             };
         }
 
-        _GenerateMesh(meshFilter);
+        ApplyMeshToMeshFilter(meshFilter);
     }
 
     // Generate a procedural mesh
@@ -123,10 +123,10 @@ public class MCmesher
             };
         }
 
-        _GenerateMesh(meshFilter);
+        ApplyMeshToMeshFilter(meshFilter);
     }
 
-    protected void _GenerateMesh(MeshFilter meshFilter)
+    protected void ApplyMeshToMeshFilter(MeshFilter meshFilter)
     {
         var dataArray = Mesh.AllocateWritableMeshData(1);
         var data = dataArray[0];
