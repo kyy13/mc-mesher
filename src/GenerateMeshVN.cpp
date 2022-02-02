@@ -329,39 +329,6 @@ GenerateMeshResult GenerateMeshVN(
 
                 bool clampedXBoundedOffsets = false;
 
-                // Calculate vertex normals
-                // Clamp -X adjacent memory offsets
-//                if (x == 0)
-//                {
-//                    memBoundedOffsets[0] = memOffsets[0];
-//                    memBoundedOffsets[1] = memOffsets[2];
-//                    memBoundedOffsets[2] = memOffsets[4];
-//                    memBoundedOffsets[3] = memOffsets[6];
-//                }
-//                else
-//                {
-//                    memBoundedOffsets[0] = memOffsets[8];
-//                    memBoundedOffsets[1] = memOffsets[9];
-//                    memBoundedOffsets[2] = memOffsets[10];
-//                    memBoundedOffsets[3] = memOffsets[11];
-//                }
-//
-//                // Clamp +X adjacent memory offsets
-//                if (x == maxCubeIndex.x)
-//                {
-//                    memBoundedOffsets[4] = memOffsets[1];
-//                    memBoundedOffsets[5] = memOffsets[3];
-//                    memBoundedOffsets[6] = memOffsets[5];
-//                    memBoundedOffsets[7] = memOffsets[7];
-//                }
-//                else
-//                {
-//                    memBoundedOffsets[4] = memOffsets[12];
-//                    memBoundedOffsets[5] = memOffsets[13];
-//                    memBoundedOffsets[6] = memOffsets[14];
-//                    memBoundedOffsets[7] = memOffsets[15];
-//                }
-
                 // Setup un-normalized cube normals
                 Vector3<float> cubeNormals[8];
 
@@ -370,62 +337,6 @@ GenerateMeshResult GenerateMeshVN(
                         false, false, false, false,
                         false, false, false, false,
                     };
-//
-//                cubeNormals[0] =
-//                    {
-//                        .x = *(voxel + memBoundedOffsets[0]) - corner[1],
-//                        .y = *(voxel + memBoundedOffsets[8]) - corner[2],
-//                        .z = *(voxel + memBoundedOffsets[16]) - corner[4],
-//                    };
-//
-//                cubeNormals[1] =
-//                    {
-//                        .x = corner[0] - *(voxel + memBoundedOffsets[4]),
-//                        .y = *(voxel + memBoundedOffsets[9]) - corner[3],
-//                        .z = *(voxel + memBoundedOffsets[17]) - corner[5],
-//                    };
-//
-//                cubeNormals[2] =
-//                    {
-//                        .x = *(voxel + memBoundedOffsets[1]) - corner[3],
-//                        .y = corner[0] - *(voxel + memBoundedOffsets[12]),
-//                        .z = *(voxel + memBoundedOffsets[18]) - corner[6],
-//                    };
-//
-//                cubeNormals[3] =
-//                    {
-//                        .x = corner[2] - *(voxel + memBoundedOffsets[5]),
-//                        .y = corner[1] - *(voxel + memBoundedOffsets[13]),
-//                        .z = *(voxel + memBoundedOffsets[19]) - corner[7],
-//                    };
-//
-//                cubeNormals[4] =
-//                    {
-//                        .x = *(voxel + memBoundedOffsets[2]) - corner[5],
-//                        .y = *(voxel + memBoundedOffsets[10]) - corner[6],
-//                        .z = corner[0] - *(voxel + memBoundedOffsets[20]),
-//                    };
-//
-//                cubeNormals[5] =
-//                    {
-//                        .x = corner[4] - *(voxel + memBoundedOffsets[6]),
-//                        .y = *(voxel + memBoundedOffsets[11]) - corner[7],
-//                        .z = corner[1] - *(voxel + memBoundedOffsets[21]),
-//                    };
-//
-//                cubeNormals[6] =
-//                    {
-//                        .x = *(voxel + memBoundedOffsets[3]) - corner[7],
-//                        .y = corner[4] - *(voxel + memBoundedOffsets[14]),
-//                        .z = corner[2] - *(voxel + memBoundedOffsets[22]),
-//                    };
-//
-//                cubeNormals[7] =
-//                    {
-//                        .x = corner[6] - *(voxel + memBoundedOffsets[7]),
-//                        .y = corner[5] - *(voxel + memBoundedOffsets[15]),
-//                        .z = corner[3] - *(voxel + memBoundedOffsets[23]),
-//                    };
 
                 // Step vertices
                 for (uint32_t i = 0; i != vertCount; i += 3)

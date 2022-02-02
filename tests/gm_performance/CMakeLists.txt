@@ -6,8 +6,8 @@ add_executable(
 target_include_directories(
     gm_performance_test
     PUBLIC
-    include
-    "ext/gradient-noise/include"
+    ${PROJECT_SOURCE_DIR}/include
+    "../ext/gradient-noise/include"
 )
 
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
