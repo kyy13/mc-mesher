@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(MCmesher)
 
-option(BUILD_TESTS "set to on to build tests" ON)
+option(BUILD_TESTS "build tests?" ON)
 
 # library
 add_library(
@@ -13,7 +13,9 @@ add_library(
     src/MCmesher.cpp
     src/GenerateMeshFN.cpp
     src/GenerateMeshVN.cpp
+    src/RayIntersectVirtualMesh.cpp
     src/LookupTable.cpp
+    src/Common.cpp
 )
 
 # includes

@@ -3,8 +3,9 @@
 
 #include "MCmesher.h"
 #include "Mesh.h"
-
+#include "Common.h"
 #include "LookupTable.h"
+
 #include <unordered_map>
 
 McmResult mcmGenerateMeshFN(
@@ -51,8 +52,6 @@ McmResult mcmGenerateMeshFN(
     auto& vertices = mesh->vertices;
     auto& normals = mesh->normals;
     auto& indices = mesh->indices;
-
-    uint32_t vertexCount = 0;
 
     vertices.clear();
     indices.clear();
@@ -168,28 +167,7 @@ McmResult mcmGenerateMeshFN(
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
-                        /*
-                         *      edge key = (c index) * 3 + edge key
-                         *
-                         *            c4 (e#2)
-                         *            |
-                         *            |                     z
-                         *            |                     |
-                         *            c ------- c2 (e#1)    o----> y
-                         *           /                     /
-                         *          /                     x
-                         *         c1 (e#0)
-                         */
-
-                        const uint32_t cacheBits = LookupTable::EdgeCacheBits[vertexData];
-
-                        uint32_t cacheKey = voxel - origin;
-
-                        if ((cacheBits & 4u) != 0) cacheKey += 1;
-                        if ((cacheBits & 8u) != 0) cacheKey += w;
-                        if ((cacheBits & 16u) != 0) cacheKey += wh;
-
-                        cacheKey = 3u * cacheKey + (cacheBits & 0b11u);
+                        uint32_t cacheKey = mcmComputeEdgeCacheKey(voxel - origin, w, wh, vertexData);
 
                         auto it = vertexCache.find(cacheKey);
 
@@ -256,13 +234,6 @@ McmResult mcmGenerateMeshFN(
                     normals.push_back(triFaceNormal);
                     normals.push_back(triFaceNormal);
                     normals.push_back(triFaceNormal);
-
-                    indices.push_back(vertexCount);
-                    ++vertexCount;
-                    indices.push_back(vertexCount);
-                    ++vertexCount;
-                    indices.push_back(vertexCount);
-                    ++vertexCount;
                 }
                 ++x;
                 cubeOrigin.x += 1.0f;
@@ -275,6 +246,14 @@ McmResult mcmGenerateMeshFN(
         py1 += wh;
         ++z;
         cubeOrigin.z += 1.0f;
+    }
+
+    // Write Indices
+    size_t vertexCount = vertices.size();
+    indices.reserve(vertexCount);
+    for (uint32_t i = 0; i != vertexCount; ++i)
+    {
+        indices.push_back(i);
     }
 
     return McmResult::MCM_SUCCESS;

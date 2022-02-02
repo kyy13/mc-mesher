@@ -3,6 +3,7 @@
 
 #include "MCmesher.h"
 #include "Mesh.h"
+#include "Common.h"
 
 #include "LookupTable.h"
 #include <unordered_map>
@@ -47,8 +48,6 @@ McmResult mcmGenerateMeshVN(
     std::unordered_map<uint32_t, VertexCacheEntry> vertexCache;
 
     VertexCacheEntry* vertexCacheEntries[3];
-
-    float corner[8];
 
     auto& vertices = mesh->vertices;
     auto& normals = mesh->normals;
@@ -291,28 +290,22 @@ McmResult mcmGenerateMeshVN(
 
             for (; voxel != px1; ++voxel)
             {
-                corner[0] = *(voxel);
-                corner[1] = *(voxel + 1);
-                corner[2] = *(voxel + memOffsets[2]);
-                corner[3] = *(voxel + memOffsets[3]);
-                corner[4] = *(voxel + memOffsets[4]);
-                corner[5] = *(voxel + memOffsets[5]);
-                corner[6] = *(voxel + memOffsets[6]);
-                corner[7] = *(voxel + memOffsets[7]);
+                const float corner[8] =
+                    {
+                        *(voxel),
+                        *(voxel + 1),
+                        *(voxel + memOffsets[2]),
+                        *(voxel + memOffsets[3]),
+                        *(voxel + memOffsets[4]),
+                        *(voxel + memOffsets[5]),
+                        *(voxel + memOffsets[6]),
+                        *(voxel + memOffsets[7]),
+                    };
 
                 // Get Case Index
-                uint8_t caseIndex = 0;
+                uint8_t caseIndex = mcmComputeCaseIndex(corner, isoLevel);
 
-                if (corner[0] >= isoLevel) caseIndex |= 0x01u;
-                if (corner[1] >= isoLevel) caseIndex |= 0x02u;
-                if (corner[2] >= isoLevel) caseIndex |= 0x04u;
-                if (corner[3] >= isoLevel) caseIndex |= 0x08u;
-                if (corner[4] >= isoLevel) caseIndex |= 0x10u;
-                if (corner[5] >= isoLevel) caseIndex |= 0x20u;
-                if (corner[6] >= isoLevel) caseIndex |= 0x40u;
-                if (corner[7] >= isoLevel) caseIndex |= 0x80u;
-
-                // Cell has trivial triangulation
+                // Cell has no geometry
                 if (caseIndex == 0x00u || caseIndex == 0xffu)
                 {
                     ++x;
@@ -346,28 +339,7 @@ McmResult mcmGenerateMeshVN(
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
-                        /*
-                         *      edge key = (c index) * 3 + edge key
-                         *
-                         *            c4 (e#2)
-                         *            |
-                         *            |                     z
-                         *            |                     |
-                         *            c ------- c2 (e#1)    o----> y
-                         *           /                     /
-                         *          /                     x
-                         *         c1 (e#0)
-                         */
-
-                        const uint32_t cacheBits = LookupTable::EdgeCacheBits[vertexData];
-
-                        uint32_t cacheKey = voxel - origin;
-
-                        if ((cacheBits & 4u) != 0) cacheKey += 1;
-                        if ((cacheBits & 8u) != 0) cacheKey += w;
-                        if ((cacheBits & 16u) != 0) cacheKey += wh;
-
-                        cacheKey = 3u * cacheKey + (cacheBits & 0b11u);
+                        uint32_t cacheKey = mcmComputeEdgeCacheKey(voxel - origin, w, wh, vertexData);
 
                         auto it = vertexCache.find(cacheKey);
 

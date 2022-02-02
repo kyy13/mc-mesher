@@ -11,8 +11,6 @@ namespace LookupTable
 {
     extern const Vector3<float> UnitCube[8];
 
-    extern const uint32_t EdgeCacheBits[64];
-
     extern const uint32_t RegularCellClass[256];
 
     extern const uint32_t RegularCellData[256];
