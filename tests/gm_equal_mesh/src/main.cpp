@@ -73,26 +73,26 @@ int main()
         }
     }
 
-    auto meshA = CreateMesh();
-    auto meshB = CreateMesh();
+    auto meshA = mcmCreateMeshBuffer();
+    auto meshB = mcmCreateMeshBuffer();
 
-    auto result = GenerateMeshFN(meshA, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f);
+    auto result = mcmGenerateMeshFN(meshA, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f);
 
-    if (result != GenerateMeshResult::SUCCESS)
+    if (result != McmResult::MCM_SUCCESS)
     {
         return -1;
     }
 
-    result = GenerateMeshVN(meshB, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f);
+    result = mcmGenerateMeshVN(meshB, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f);
 
-    if (result != GenerateMeshResult::SUCCESS)
+    if (result != McmResult::MCM_SUCCESS)
     {
         return -1;
     }
 
-    size_t numIndices = CountIndices(meshA);
+    size_t numIndices = mcmCountIndices(meshA);
 
-    if (numIndices != CountIndices(meshB))
+    if (numIndices != mcmCountIndices(meshB))
     {
         return -1;
     }
@@ -102,14 +102,14 @@ int main()
         return -1;
     }
 
-    const auto* indicesA = GetIndices(meshA);
-    const auto* indicesB = GetIndices(meshB);
+    const auto* indicesA = mcmGetIndices(meshA);
+    const auto* indicesB = mcmGetIndices(meshB);
 
-    const auto* verticesA = GetVertices(meshA);
-    const auto* verticesB = GetVertices(meshB);
+    const auto* verticesA = mcmGetVertices(meshA);
+    const auto* verticesB = mcmGetVertices(meshB);
 
-    const auto vertexCountA = CountVertices(meshA);
-    const auto vertexCountB = CountVertices(meshB);
+    const auto vertexCountA = mcmCountVertices(meshA);
+    const auto vertexCountB = mcmCountVertices(meshB);
 
     for (size_t i = 0; i != numIndices; ++i)
     {
@@ -139,8 +139,8 @@ int main()
         }
     }
 
-    DeleteMesh(meshA);
-    DeleteMesh(meshB);
+    mcmDeleteMeshBuffer(meshA);
+    mcmDeleteMeshBuffer(meshB);
 
     return 0;
 }

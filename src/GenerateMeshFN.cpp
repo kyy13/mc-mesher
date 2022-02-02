@@ -7,8 +7,8 @@
 #include "LookupTable.h"
 #include <unordered_map>
 
-GenerateMeshResult GenerateMeshFN(
-    Mesh* mesh,
+McmResult mcmGenerateMeshFN(
+    McmMeshBuffer* mesh,
     const float* data,
     Vector3<uint32_t> dataSize,
     Vector3<uint32_t> meshOrigin,
@@ -17,24 +17,24 @@ GenerateMeshResult GenerateMeshFN(
 {
     if (mesh == nullptr)
     {
-        return GenerateMeshResult::ERROR_MESH_IS_NULL;
+        return McmResult::MCM_MESH_BUFFER_IS_NULL;
     }
 
     const Vector3<uint32_t> meshEnd = meshOrigin + meshSize;
 
     if (meshEnd.x >= dataSize.x)
     {
-        return GenerateMeshResult::ERROR_OUT_OF_BOUNDS_X;
+        return McmResult::MCM_OUT_OF_BOUNDS_X;
     }
 
     if (meshEnd.y >= dataSize.y)
     {
-        return GenerateMeshResult::ERROR_OUT_OF_BOUNDS_Y;
+        return McmResult::MCM_OUT_OF_BOUNDS_Y;
     }
 
     if (meshEnd.z >= dataSize.z)
     {
-        return GenerateMeshResult::ERROR_OUT_OF_BOUNDS_Z;
+        return McmResult::MCM_OUT_OF_BOUNDS_Z;
     }
 
     struct VertexCacheEntry
@@ -277,5 +277,5 @@ GenerateMeshResult GenerateMeshFN(
         cubeOrigin.z += 1.0f;
     }
 
-    return GenerateMeshResult::SUCCESS;
+    return McmResult::MCM_SUCCESS;
 }

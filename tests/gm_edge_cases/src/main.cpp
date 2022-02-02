@@ -28,7 +28,7 @@ int main()
             .z = dataSize.z - 1,
         };
 
-    auto mesh = CreateMesh();
+    auto mesh = mcmCreateMeshBuffer();
 
     std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
 
@@ -39,32 +39,32 @@ int main()
         scalar = 0.0f;
     }
 
-    auto result = GenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    auto result = mcmGenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
 
-    if (result != GenerateMeshResult::SUCCESS)
+    if (result != McmResult::MCM_SUCCESS)
     {
         return -1;
     }
 
     if (!(
-        (CountVertices(mesh) == 0) &&
-        (CountNormals(mesh) == 0) &&
-        (CountIndices(mesh) == 0)))
+        (mcmCountVertices(mesh) == 0) &&
+        (mcmCountNormals(mesh) == 0) &&
+        (mcmCountIndices(mesh) == 0)))
     {
         return -1;
     }
 
-    result = GenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    result = mcmGenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
 
-    if (result != GenerateMeshResult::SUCCESS)
+    if (result != McmResult::MCM_SUCCESS)
     {
         return -1;
     }
 
     if (!(
-        (CountVertices(mesh) == 0) &&
-        (CountNormals(mesh) == 0) &&
-        (CountIndices(mesh) == 0)))
+        (mcmCountVertices(mesh) == 0) &&
+        (mcmCountNormals(mesh) == 0) &&
+        (mcmCountIndices(mesh) == 0)))
     {
         return -1;
     }
@@ -76,37 +76,37 @@ int main()
         scalar = 1.0f;
     }
 
-    result = GenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    result = mcmGenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
 
-    if (result != GenerateMeshResult::SUCCESS)
+    if (result != McmResult::MCM_SUCCESS)
     {
         return -1;
     }
 
     if (!(
-        (CountVertices(mesh) == 0) &&
-        (CountNormals(mesh) == 0) &&
-        (CountIndices(mesh) == 0)))
+        (mcmCountVertices(mesh) == 0) &&
+        (mcmCountNormals(mesh) == 0) &&
+        (mcmCountIndices(mesh) == 0)))
     {
         return -1;
     }
 
-    result = GenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    result = mcmGenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
 
-    if (result != GenerateMeshResult::SUCCESS)
+    if (result != McmResult::MCM_SUCCESS)
     {
         return -1;
     }
 
     if (!(
-        (CountVertices(mesh) == 0) &&
-        (CountNormals(mesh) == 0) &&
-        (CountIndices(mesh) == 0)))
+        (mcmCountVertices(mesh) == 0) &&
+        (mcmCountNormals(mesh) == 0) &&
+        (mcmCountIndices(mesh) == 0)))
     {
         return -1;
     }
 
-    DeleteMesh(mesh);
+    mcmDeleteMeshBuffer(mesh);
 
     return 0;
 }

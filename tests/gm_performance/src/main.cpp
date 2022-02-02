@@ -39,14 +39,14 @@ float GetValue(size_t x, size_t y, size_t z)
 }
 
 template<auto fn>
-float TestGenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize)
+float TestGenerateMesh(McmMeshBuffer* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize)
 {
     constexpr float twoOver256 = 2.0f / 256.0f;
     constexpr float secPerClock = 1.0f / static_cast<float>(CLOCKS_PER_SEC);
 
     clock_t dt = 0;
     clock_t t;
-    GenerateMeshResult result;
+    McmResult result;
 
     for (size_t i = 0; i != 256; ++i)
     {
@@ -56,7 +56,7 @@ float TestGenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize
         result = fn(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
         dt += (clock() - t);
 
-        if (result != GenerateMeshResult::SUCCESS)
+        if (result != McmResult::MCM_SUCCESS)
         {
             throw;
         }
@@ -106,20 +106,20 @@ int main()
 
     std::cout << "generating meshes...\n";
 
-    auto mesh = CreateMesh();
+    auto mesh = mcmCreateMeshBuffer();
 
-    std::cout << "GenerateMeshVN 256^3 = ";
-    auto t = TestGenerateMesh<GenerateMeshVN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
+    std::cout << "mcmGenerateMeshVN 256^3 = ";
+    auto t = TestGenerateMesh<mcmGenerateMeshVN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
     std::cout << t << "s (avg = ";
     std::cout << (t / 256.0f) << "s)\n";
 
-    DeleteMesh(mesh);
-    mesh = CreateMesh();
+    mcmDeleteMeshBuffer(mesh);
+    mesh = mcmCreateMeshBuffer();
 
     std::cout << "GenerateMeshFN 256^3 => ";
-    t = TestGenerateMesh<GenerateMeshFN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
+    t = TestGenerateMesh<mcmGenerateMeshFN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
     std::cout << t << "s (avg = ";
     std::cout << (t / 256.0f) << "s)\n";
 
-    DeleteMesh(mesh);
+    mcmDeleteMeshBuffer(mesh);
 }

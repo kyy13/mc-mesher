@@ -13,57 +13,57 @@
 #include <unordered_map>
 #include <cassert>
 
-Mesh* CreateMesh()
+McmMeshBuffer* mcmCreateMeshBuffer()
 {
-    return new Mesh();
+    return new McmMeshBuffer();
 }
 
-void DeleteMesh(Mesh* mesh)
+void mcmDeleteMeshBuffer(McmMeshBuffer* mesh)
 {
     delete mesh;
 }
 
-uint32_t CountVertices(const Mesh* mesh)
+uint32_t mcmCountVertices(const McmMeshBuffer* mesh)
 {
     return mesh->vertices.size();
 }
 
-const Vector3<float>* GetVertices(const Mesh* mesh)
+const Vector3<float>* mcmGetVertices(const McmMeshBuffer* mesh)
 {
     return mesh->vertices.data();
 }
 
-void CopyVertices(const Mesh* mesh, Vector3<float>* dst)
+void mcmCopyVertices(const McmMeshBuffer* mesh, Vector3<float>* dst)
 {
     memcpy(dst, mesh->vertices.data(), mesh->vertices.size() * sizeof(Vector3<float>));
 }
 
-uint32_t CountNormals(const Mesh* mesh)
+uint32_t mcmCountNormals(const McmMeshBuffer* mesh)
 {
     return mesh->normals.size();
 }
 
-const Vector3<float>* GetNormals(const Mesh* mesh)
+const Vector3<float>* mcmGetNormals(const McmMeshBuffer* mesh)
 {
     return mesh->normals.data();
 }
 
-void CopyNormals(const Mesh* mesh, Vector3<float>* dst)
+void mcmCopyNormals(const McmMeshBuffer* mesh, Vector3<float>* dst)
 {
     memcpy(dst, mesh->normals.data(), mesh->normals.size() * sizeof(Vector3<float>));
 }
 
-uint32_t CountIndices(const Mesh* mesh)
+uint32_t mcmCountIndices(const McmMeshBuffer* mesh)
 {
     return mesh->indices.size();
 }
 
-const uint32_t* GetIndices(const Mesh* mesh)
+const uint32_t* mcmGetIndices(const McmMeshBuffer* mesh)
 {
     return mesh->indices.data();
 }
 
-void CopyIndices(const Mesh* mesh, uint32_t* dst)
+void mcmCopyIndices(const McmMeshBuffer* mesh, uint32_t* dst)
 {
     memcpy(dst, mesh->indices.data(), mesh->indices.size() * sizeof(uint32_t));
 }

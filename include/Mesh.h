@@ -6,7 +6,7 @@
 
 #include <vector>
 
-struct Mesh
+struct McmMeshBuffer
 {
     std::vector<Vector3<float>> vertices;
     std::vector<Vector3<float>> normals;

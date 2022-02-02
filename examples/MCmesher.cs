@@ -21,13 +21,13 @@ public class MCmesher
         [FieldOffset(8)] public uint z;
     }
 
-    protected enum GenerateMeshResult
+    protected enum McmResult
         {
-            SUCCESS = 0,
-            ERROR_MESH_IS_NULL = 1,
-            ERROR_OUT_OF_BOUNDS_X = 2,
-            ERROR_OUT_OF_BOUNDS_Y = 3,
-            ERROR_OUT_OF_BOUNDS_Z = 4,
+            MCM_SUCCESS = 0,
+            MCM_MESH_BUFFER_IS_NULL = 1,
+            MCM_OUT_OF_BOUNDS_X = 2,
+            MCM_OUT_OF_BOUNDS_Y = 3,
+            MCM_OUT_OF_BOUNDS_Z = 4,
         };
 
     // Allocate intermediate mesh data (once for every mesh that's generated here)
@@ -55,7 +55,7 @@ public class MCmesher
         float isoLevel = 0.5f,
         bool vertexNormals = true)
     {
-        GenerateMeshResult r;
+        McmResult r;
 
         if (vertexNormals)
         {
@@ -66,15 +66,15 @@ public class MCmesher
             r = API_GenerateMeshFN(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, isoLevel);
         }
 
-        if (r != GenerateMeshResult.SUCCESS)
+        if (r != McmResult.MCM_SUCCESS)
         {
             switch(r)
             {
-            case GenerateMeshResult.ERROR_MESH_IS_NULL:
+            case McmResult.MCM_MESH_BUFFER_IS_NULL:
                 throw new NullReferenceException();
-            case GenerateMeshResult.ERROR_OUT_OF_BOUNDS_X:
-            case GenerateMeshResult.ERROR_OUT_OF_BOUNDS_Y:
-            case GenerateMeshResult.ERROR_OUT_OF_BOUNDS_Z:
+            case McmResult.MCM_OUT_OF_BOUNDS_X:
+            case McmResult.MCM_OUT_OF_BOUNDS_Y:
+            case McmResult.MCM_OUT_OF_BOUNDS_Z:
                 throw new ArgumentOutOfRangeException();
             default:
                 throw new Exception();
@@ -97,7 +97,7 @@ public class MCmesher
         float isoLevel = 0.5f,
         bool vertexNormals = true)
     {
-        GenerateMeshResult r;
+        McmResult r;
 
         if (vertexNormals)
         {
@@ -108,15 +108,15 @@ public class MCmesher
             r = API_GenerateMeshFN(m_meshHandle, voxelData, dataSize, meshOrigin, meshSize, isoLevel);
         }
 
-        if (r != GenerateMeshResult.SUCCESS)
+        if (r != McmResult.MCM_SUCCESS)
         {
             switch(r)
             {
-            case GenerateMeshResult.ERROR_MESH_IS_NULL:
+            case McmResult.MCM_MESH_BUFFER_IS_NULL:
                 throw new NullReferenceException();
-            case GenerateMeshResult.ERROR_OUT_OF_BOUNDS_X:
-            case GenerateMeshResult.ERROR_OUT_OF_BOUNDS_Y:
-            case GenerateMeshResult.ERROR_OUT_OF_BOUNDS_Z:
+            case McmResult.MCM_OUT_OF_BOUNDS_X:
+            case McmResult.MCM_OUT_OF_BOUNDS_Y:
+            case McmResult.MCM_OUT_OF_BOUNDS_Z:
                 throw new ArgumentOutOfRangeException();
             default:
                 throw new Exception();
@@ -177,14 +177,14 @@ public class MCmesher
 
 
 
-    [DllImport("libMCmesher", EntryPoint = "CreateMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmCreateMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
     protected static extern IntPtr API_CreateMesh();
 
-    [DllImport("libMCmesher", EntryPoint = "DeleteMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmDeleteMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
     protected static extern void API_DeleteMesh(IntPtr meshHandle);
 
     [DllImport("libMCmesher", EntryPoint = "GenerateMeshVN", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern GenerateMeshResult API_GenerateMeshVN(
+    protected static extern McmResult API_GenerateMeshVN(
         IntPtr meshHandle,
         float[,,] data,
         Vector3u dataSize,        // size of scalar field data (points)
@@ -192,8 +192,8 @@ public class MCmesher
         Vector3u meshSize,        // mesh size in scalar field (cubes)
         float isoLevel);
 
-    [DllImport("libMCmesher", EntryPoint = "GenerateMeshVN", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern GenerateMeshResult API_GenerateMeshVN(IntPtr meshHandle,
+    [DllImport("libMCmesher", EntryPoint = "mcmGenerateMeshVN", CallingConvention = CallingConvention.Cdecl)]
+    protected static extern McmResult API_GenerateMeshVN(IntPtr meshHandle,
         float[] data,
         Vector3u dataSize,        // size of scalar field data (points)
         Vector3u meshOrigin,      // mesh origin in scalar field (cubes)
@@ -201,7 +201,7 @@ public class MCmesher
         float isoLevel);
 
     [DllImport("libMCmesher", EntryPoint = "GenerateMeshFN", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern GenerateMeshResult API_GenerateMeshFN(
+    protected static extern McmResult API_GenerateMeshFN(
         IntPtr meshHandle,
         float[,,] data,
         Vector3u dataSize,        // size of scalar field data (points)
@@ -210,28 +210,28 @@ public class MCmesher
         float isoLevel);
 
     [DllImport("libMCmesher", EntryPoint = "GenerateMeshFN", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern GenerateMeshResult API_GenerateMeshFN(IntPtr meshHandle,
+    protected static extern McmResult API_GenerateMeshFN(IntPtr meshHandle,
         float[] data,
         Vector3u dataSize,        // size of scalar field data (points)
         Vector3u meshOrigin,      // mesh origin in scalar field (cubes)
         Vector3u meshSize,        // mesh size in scalar field (cubes)
         float isoLevel);
 
-    [DllImport("libMCmesher", EntryPoint = "CountVertices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmCountVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountVertices(IntPtr meshHandle);
 
-    [DllImport("libMCmesher", EntryPoint = "CopyVertices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmCopyVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void API_CopyVertices(IntPtr meshHandle, void* dst);
 
-    [DllImport("libMCmesher", EntryPoint = "CountNormals", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmCountNormals", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountNormals(IntPtr meshHandle);
 
-    [DllImport("libMCmesher", EntryPoint = "CopyNormals", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmCopyNormals", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void API_CopyNormals(IntPtr meshHandle, void* dst);
 
-    [DllImport("libMCmesher", EntryPoint = "CountIndices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmCountIndices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint API_CountIndices(IntPtr meshHandle);
 
-    [DllImport("libMCmesher", EntryPoint = "CopyIndices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libMCmesher", EntryPoint = "mcmCopyIndices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void API_CopyIndices(IntPtr meshHandle, void* dst);
 }
