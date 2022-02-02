@@ -9,6 +9,61 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <unordered_map>
+
+float GetValue(size_t x, size_t y, size_t z)
+{
+    static gnd::gradient_noise<float, 3> noise3d(532346);
+    static std::unordered_map<uint32_t, float> values;
+
+    uint32_t key = (x % 8) + 8 * (y % 8) + 64 * (z % 8);
+
+    auto it = values.find(key);
+
+    if (it != values.end())
+    {
+        return it->second;
+    }
+    else
+    {
+        float val = noise3d({
+            static_cast<float>(x) * 0.05f,
+            static_cast<float>(y) * 0.05f,
+            static_cast<float>(z) * 0.05f,
+        });
+
+        values[key] = val;
+
+        return val;
+    }
+}
+
+template<auto fn>
+float TestGenerateMesh(Mesh* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize)
+{
+    constexpr float twoOver256 = 2.0f / 256.0f;
+    constexpr float secPerClock = 1.0f / static_cast<float>(CLOCKS_PER_SEC);
+
+    clock_t dt = 0;
+    clock_t t;
+    GenerateMeshResult result;
+
+    for (size_t i = 0; i != 256; ++i)
+    {
+        float isoLevel = -1.0f + twoOver256 * static_cast<float>(i);
+
+        t = clock();
+        result = fn(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
+        dt += (clock() - t);
+
+        if (result != GenerateMeshResult::SUCCESS)
+        {
+            throw;
+        }
+    }
+
+    return secPerClock * static_cast<float>(dt);
+}
 
 int main()
 {
@@ -34,8 +89,8 @@ int main()
         };
 
     std::cout << "generating noise...\n";
-    gnd::gradient_noise<float, 3> noise3d(532346);
-    std::vector<float> data(dataSize.x * dataSize.y * dataSize.z);
+
+    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
     for (size_t z = 0; z != dataSize.z; ++z)
     {
         for (size_t y = 0; y != dataSize.y; ++y)
@@ -44,14 +99,7 @@ int main()
             {
                 size_t i = x + dataSize.x * (y + dataSize.y * z);
 
-                data[i] = noise3d({
-                    static_cast<float>(x) * 0.05f,
-                    static_cast<float>(y) * 0.05f,
-                    static_cast<float>(z) * 0.05f,
-                });
-
-                if (data[i] < -1.0f) data[i] = -1.0f;
-                if (data[i] > 1.0f) data[i] = 1.0f;
+                scalarField[i] = GetValue(x, y, z);
             }
         }
     }
@@ -60,32 +108,18 @@ int main()
 
     auto mesh = CreateMesh();
 
-    size_t n = 0;
-    clock_t dt = 0;
-    clock_t dt_sum = 0;
-    for (float isoLevel = -1.0f; isoLevel <= 1.0f; isoLevel += 0.05f)
-    {
-        clock_t t = clock();
-        GenerateMeshFN(mesh, data.data(), dataSize, meshOrigin, meshSize, isoLevel);
-        dt = (clock() - t);
-        dt_sum += dt;
+    std::cout << "GenerateMeshVN 256^3 = ";
+    auto t = TestGenerateMesh<GenerateMeshVN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
+    std::cout << t << "s (avg = ";
+    std::cout << (t / 256.0f) << "s)\n";
 
-        float tf = static_cast<float>(dt) / static_cast<float>(CLOCKS_PER_SEC);
-        std::cout
-            << "isoLevel=" << isoLevel
-            << ", dt=" << tf << "s"
-            << ", indices=" << CountIndices(mesh)
-            << ", vertices=" << CountVertices(mesh)
-            << '\n';
+    DeleteMesh(mesh);
+    mesh = CreateMesh();
 
-        ++n;
-    }
-
-    float tf_sum = static_cast<float>(dt_sum) / static_cast<float>(CLOCKS_PER_SEC);
-    std::cout
-        << "dt sum=" << tf_sum << "s"
-        << ", dt avg=" << (tf_sum / static_cast<float>(n))
-        << '\n';
+    std::cout << "GenerateMeshFN 256^3 => ";
+    t = TestGenerateMesh<GenerateMeshFN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
+    std::cout << t << "s (avg = ";
+    std::cout << (t / 256.0f) << "s)\n";
 
     DeleteMesh(mesh);
 }

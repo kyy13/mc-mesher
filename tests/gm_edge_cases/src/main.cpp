@@ -30,9 +30,9 @@ int main()
 
     auto mesh = CreateMesh();
 
-    // Mesh, all values until iso level
-
     std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
+
+    // Test: all values under iso level
 
     for (auto& scalar : scalarField)
     {
@@ -68,6 +68,8 @@ int main()
     {
         return -1;
     }
+
+    // Test: all values over iso level
 
     for (auto& scalar : scalarField)
     {
