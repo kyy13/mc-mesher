@@ -10,13 +10,6 @@
 
 McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect)
 {
-    const Vector3<float> fDataSize =
-        {
-            static_cast<float>(dataSize.x),
-            static_cast<float>(dataSize.y),
-            static_cast<float>(dataSize.z),
-        };
-
     const uint32_t mem_w = dataSize.x;
     const uint32_t mem_wh = dataSize.x * dataSize.y;
 
@@ -49,26 +42,30 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
     // we want the cube in the same direction as the axis of movement
     if (max.x == min.x)
     {
-        max.x += (rayDir.x >= 0.0f)
-            ? 1.0f
-            : -1.0f;
+        if (rayDir.x >= 0.0f)
+            max.x += 1.0f;
+        else
+            min.x -= 1.0f;
     }
 
     if (max.y == min.y)
     {
-        max.y += (rayDir.y >= 0.0f)
-            ? 1.0f
-            : -1.0f;
+        if (rayDir.y >= 0.0f)
+            max.y += 1.0f;
+        else
+            min.y -= 1.0f;
     }
 
     if (max.z == min.z)
     {
-        max.z += (rayDir.z >= 0.0f)
-            ? 1.0f
-            : -1.0f;
+        if (rayDir.z >= 0.0f)
+            max.z += 1.0f;
+        else
+            min.z -= 1.0f;
     }
 
     // Check if out of bounds
+
     // TODO: this should really move the ray to the mesh start
     //       and only exit if the ray is both outside and moving away...
     if (min.x < 0.0f || min.y < 0.0f || min.z < 0.0f)
@@ -76,15 +73,22 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
         return McmResult::MCM_NO_INTERSECTION;
     }
 
-    if ((max.x > fDataSize.x) ||
-        (max.y > fDataSize.y) ||
-        (max.z > fDataSize.z))
+    const Vector3<uint32_t> umin =
+        {
+            .x = static_cast<uint32_t>(min.x),
+            .y = static_cast<uint32_t>(min.y),
+            .z = static_cast<uint32_t>(min.z),
+        };
+
+    if ((umin.x >= dataSize.x - 2) ||
+        (umin.y >= dataSize.y - 2) ||
+        (umin.z >= dataSize.z - 2))
     {
         return McmResult::MCM_NO_INTERSECTION;
     }
 
     // Get the origin of the cube, so we can determine the contents of the cube
-    uint32_t voxelIndex = static_cast<uint32_t>(min.x) + mem_w * static_cast<uint32_t>(min.y) + mem_wh * static_cast<uint32_t>(min.z);
+    uint32_t voxelIndex = umin.x + mem_w * umin.y + mem_wh * umin.z;
     const float* voxel = &data[voxelIndex];
 
     // Get case index
@@ -118,6 +122,10 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
 
         for (uint32_t i = 0; i != vertexCount; i += 3)
         {
+            vertices[i    ] = vertices[i    ] + min;
+            vertices[i + 1] = vertices[i + 1] + min;
+            vertices[i + 2] = vertices[i + 2] + min;
+
             if (mcmRayIntersectTriangle(rayPos, rayDir, &vertices[i], pIntersect))
             {
                 return MCM_SUCCESS;
@@ -142,7 +150,7 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
     const auto pMax = reinterpret_cast<const float*>(&max);
 
     // Test parameter t to face
-    for (int i = 0; i != 3; ++i)
+    for (uint32_t i = 0; i != 3; ++i)
     {
         if (dir[i] > 0.0f)
         {

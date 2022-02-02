@@ -99,7 +99,7 @@ uint32_t mcmComputeCaseGeometry(const float corners[8], float isoLevel, Vector3<
                     vertexData & 0x07u,
                 };
 
-            const Vector3<float> endpoint = LookupTable::UnitCube[endpointIndex[0]];
+            const Vector3<float>& endpoint = LookupTable::UnitCube[endpointIndex[0]];
             const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - endpoint;
 
             // Lerp factor between endpoints
