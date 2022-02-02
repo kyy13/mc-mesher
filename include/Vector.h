@@ -15,6 +15,8 @@ struct Vector2
 template<class T>
 struct Vector3
 {
+    using type = T;
+
     T x;
     T y;
     T z;

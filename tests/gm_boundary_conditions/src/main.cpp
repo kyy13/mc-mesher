@@ -8,7 +8,7 @@
 
 using GenerateMeshFn = std::function<GenerateMeshResult(const Vector3<uint32_t>&, const Vector3<uint32_t>&)>;
 
-int TestBoundaries(const Vector3<uint32_t>& dataSize, GenerateMeshFn fn)
+int TestBoundaries(Mesh* mesh, const Vector3<uint32_t>& dataSize, GenerateMeshFn fn)
 {
     // Test: entire mesh successfully generates
 
@@ -111,6 +111,57 @@ int TestBoundaries(const Vector3<uint32_t>& dataSize, GenerateMeshFn fn)
 
     meshOrigin.z = 0;
 
+    // Test: Mesh of 0 size (x)
+
+    meshSize.x = 0;
+
+    result = fn(meshOrigin, meshSize);
+
+    if (!(
+        (result == GenerateMeshResult::SUCCESS) &&
+        (CountVertices(mesh) == 0) &&
+        (CountIndices(mesh) == 0) &&
+        (CountNormals(mesh) == 0)))
+    {
+        return -1;
+    }
+
+    meshSize.x = dataSize.x - 1;
+
+    // Test: Mesh of 0 size (y)
+
+    meshSize.y = 0;
+
+    result = fn(meshOrigin, meshSize);
+
+    if (!(
+        (result == GenerateMeshResult::SUCCESS) &&
+            (CountVertices(mesh) == 0) &&
+            (CountIndices(mesh) == 0) &&
+            (CountNormals(mesh) == 0)))
+    {
+        return -1;
+    }
+
+    meshSize.y = dataSize.y - 1;
+
+    // Test: Mesh of 0 size (z)
+
+    meshSize.z = 0;
+
+    result = fn(meshOrigin, meshSize);
+
+    if (!(
+        (result == GenerateMeshResult::SUCCESS) &&
+            (CountVertices(mesh) == 0) &&
+            (CountIndices(mesh) == 0) &&
+            (CountNormals(mesh) == 0)))
+    {
+        return -1;
+    }
+
+    meshSize.z = dataSize.z - 1;
+
     // Test passes
 
     return 0;
@@ -131,11 +182,26 @@ int main()
             .z = 16,
         };
 
-    const std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z, 0.0f);
+    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
+
+    for (uint32_t z = 0; z != dataSize.z; ++z)
+    {
+        for (uint32_t y = 0; y != dataSize.y; ++y)
+        {
+            for (uint32_t x = 0; x != dataSize.x; ++x)
+            {
+                size_t i = x + dataSize.x * (y + dataSize.y * z);
+
+                scalarField[i] = (x < (dataSize.x/2))
+                    ? 0.0f
+                    : 1.0f;
+            }
+        }
+    }
 
     // Test Generating Face Normal Mesh
 
-    auto result = TestBoundaries(dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
+    auto result = TestBoundaries(mesh, dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
     {
         return GenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
     });
@@ -147,7 +213,7 @@ int main()
 
     // Test Generating Vertex Normal Mesh
 
-    result = TestBoundaries(dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
+    result = TestBoundaries(mesh, dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
     {
         return GenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
     });
