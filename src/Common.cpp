@@ -182,7 +182,7 @@ bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const
 
     const Vector3<float> qvec =
         {
-            .x = (rayPos.y - triangle[0].y) * (triangle[1].z - triangle[0].z) - (rayPos.z - triangle[0].y) * (triangle[1].y - triangle[0].y),
+            .x = (rayPos.y - triangle[0].y) * (triangle[1].z - triangle[0].z) - (rayPos.z - triangle[0].z) * (triangle[1].y - triangle[0].y),
             .y = (rayPos.z - triangle[0].z) * (triangle[1].x - triangle[0].x) - (rayPos.x - triangle[0].x) * (triangle[1].z - triangle[0].z),
             .z = (rayPos.x - triangle[0].x) * (triangle[1].y - triangle[0].y) - (rayPos.y - triangle[0].y) * (triangle[1].x - triangle[0].x),
         };
