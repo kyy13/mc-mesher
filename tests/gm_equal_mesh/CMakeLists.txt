@@ -1,3 +1,6 @@
+# MCmesher
+# Kyle J Burgess
+
 add_executable(
         gm_equal_mesh
         src/main.cpp

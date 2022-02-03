@@ -1,3 +1,6 @@
+# MCmesher
+# Kyle J Burgess
+
 add_executable(
 	gm_boundary_conditions
 	src/main.cpp

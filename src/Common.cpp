@@ -4,6 +4,8 @@
 #include "Common.h"
 #include "LookupTable.h"
 
+#include <cstring>
+
 uint8_t mcmComputeCaseIndex(const float corners[8], float isoLevel)
 {
     uint8_t caseIndex = 0u;
@@ -210,6 +212,171 @@ bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const
             .y = rayPos.y + t * rayDir.y,
             .z = rayPos.z + t * rayDir.z,
         };
+
+    return true;
+}
+
+bool mcmRayIntersectAABB(const Vector3<float>& minB, const Vector3<float>& maxB, const Vector3<float>& rayPos, const Vector3<float>& rayDir, Vector3<float>& pIntersect)
+{
+    constexpr int RIGHT = 0;
+    constexpr int LEFT = 1;
+    constexpr int MIDDLE = 2;
+
+    bool inside = true;
+    uint8_t quadrant[3];
+    size_t whichPlane = 0;
+    float maxT[3];
+    float candidatePlane[3];
+
+    // x
+    if (rayPos.x < minB.x)
+    {
+        quadrant[0] = LEFT;
+        candidatePlane[0] = minB.x;
+        inside = false;
+    }
+    else if (rayPos.x > maxB.x)
+    {
+        quadrant[0] = RIGHT;
+        candidatePlane[0] = maxB.x;
+        inside = false;
+    }
+    else
+    {
+        quadrant[0] = MIDDLE;
+    }
+
+    // y
+    if (rayPos.y < minB.y)
+    {
+        quadrant[1] = LEFT;
+        candidatePlane[1] = minB.y;
+        inside = false;
+    }
+    else if (rayPos.y > maxB.y)
+    {
+        quadrant[1] = RIGHT;
+        candidatePlane[1] = maxB.y;
+        inside = false;
+    }
+    else
+    {
+        quadrant[1] = MIDDLE;
+    }
+
+    // z
+    if (rayPos.z < minB.z)
+    {
+        quadrant[2] = LEFT;
+        candidatePlane[2] = minB.z;
+        inside = false;
+    }
+    else if (rayPos.z > maxB.z)
+    {
+        quadrant[2] = RIGHT;
+        candidatePlane[2] = maxB.z;
+        inside = false;
+    }
+    else
+    {
+        quadrant[2] = MIDDLE;
+    }
+
+    // inside AABB
+    if (inside)
+    {
+        pIntersect = rayPos;
+        return true;
+    }
+
+    // x
+    if (quadrant[0] != MIDDLE && rayDir.x != 0.0f)
+    {
+        maxT[0] = (candidatePlane[0] - rayPos.x) / rayDir.x;
+    }
+    else
+    {
+        maxT[0] = -1.0f;
+    }
+
+    // y
+    if (quadrant[1] != MIDDLE && rayDir.y != 0.0f)
+    {
+        maxT[1] = (candidatePlane[1] - rayPos.y) / rayDir.y;
+    }
+    else
+    {
+        maxT[1] = -1.0f;
+    }
+
+    // z
+    if (quadrant[2] != MIDDLE && rayDir.z != 0.0f)
+    {
+        maxT[2] = (candidatePlane[2] - rayPos.z) / rayDir.z;
+    }
+    else
+    {
+        maxT[2] = -1.0f;
+    }
+
+    // largest t
+    for (size_t i = 1; i < 3; ++i)
+    {
+        if (maxT[whichPlane] < maxT[i])
+        {
+            whichPlane = i;
+        }
+    }
+
+    if (maxT[whichPlane] < 0.0f)
+    {
+        return false;
+    }
+
+    // x
+    if (whichPlane != 0)
+    {
+        pIntersect.x = rayPos.x + maxT[whichPlane] * rayDir.x;
+
+        if (pIntersect.x < minB.x || pIntersect.x > maxB.x)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        pIntersect.x = candidatePlane[0];
+    }
+
+    // y
+    if (whichPlane != 1)
+    {
+        pIntersect.y = rayPos.y + maxT[whichPlane] * rayDir.y;
+
+        if (pIntersect.y < minB.y || pIntersect.y > maxB.y)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        pIntersect.y = candidatePlane[1];
+    }
+
+    // z
+    if (whichPlane != 2)
+    {
+        pIntersect.z = rayPos.z + maxT[whichPlane] * rayDir.z;
+
+        if (pIntersect.z < minB.z || pIntersect.z > maxB.z)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        pIntersect.z = candidatePlane[2];
+    }
 
     return true;
 }

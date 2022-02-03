@@ -1,3 +1,6 @@
+# MCmesher
+# Kyle J Burgess
+
 add_executable(
         gm_edge_cases
         src/main.cpp

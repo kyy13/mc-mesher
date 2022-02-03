@@ -10,8 +10,34 @@
 
 McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect)
 {
+    constexpr float epsilon = 1e-7f;
+
     const uint32_t mem_w = dataSize.x;
     const uint32_t mem_wh = dataSize.x * dataSize.y;
+
+    // March ray to AABB if outside entire data set
+    const Vector3<float> minB =
+        {
+            0.0f,
+            0.0f,
+            0.0f,
+        };
+
+    const Vector3<float> maxB =
+        {
+            static_cast<float>(dataSize.x),
+            static_cast<float>(dataSize.y),
+            static_cast<float>(dataSize.z),
+        };
+
+    if (!mcmRayIntersectAABB(minB, maxB, rayPos, rayDir,pIntersect))
+    {
+        return MCM_NO_INTERSECTION;
+    }
+    else
+    {
+        rayPos = pIntersect;
+    }
 
     /*     p3 ------ p7
      *    / |       /|
@@ -64,25 +90,17 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
             min.z -= 1.0f;
     }
 
-    // Check if out of bounds
-
-    // TODO: this should really move the ray to the mesh start
-    //       and only exit if the ray is both outside and moving away...
-    if (min.x < 0.0f || min.y < 0.0f || min.z < 0.0f)
-    {
-        return McmResult::MCM_NO_INTERSECTION;
-    }
-
+    // convert to unsigned, correcting small errors in boundary collision from mcmRayIntersectAABB
     const Vector3<uint32_t> umin =
         {
-            .x = static_cast<uint32_t>(min.x),
-            .y = static_cast<uint32_t>(min.y),
-            .z = static_cast<uint32_t>(min.z),
+            .x = (min.x < 0.0f) ? 0 : static_cast<uint32_t>(min.x),
+            .y = (min.y < 0.0f) ? 0 : static_cast<uint32_t>(min.y),
+            .z = (min.z < 0.0f) ? 0 : static_cast<uint32_t>(min.z),
         };
 
-    if ((umin.x >= dataSize.x - 2) ||
-        (umin.y >= dataSize.y - 2) ||
-        (umin.z >= dataSize.z - 2))
+    if ((umin.x >= dataSize.x - 1) ||
+        (umin.y >= dataSize.y - 1) ||
+        (umin.z >= dataSize.z - 1))
     {
         return McmResult::MCM_NO_INTERSECTION;
     }
@@ -173,8 +191,6 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
     if (fabsf(t[2]) < fabsf(tMin)) tMin = t[2];
 
     // Query next cubes
-    constexpr float epsilon = 1e-7f;
-
     tMin += epsilon;
     rayPos.x += tMin * rayDir.x;
     rayPos.y += tMin * rayDir.y;

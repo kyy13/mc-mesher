@@ -1,3 +1,6 @@
+# MCmesher
+# Kyle J Burgess
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 add_subdirectory(gm_boundary_conditions)
 add_subdirectory(gm_edge_cases)

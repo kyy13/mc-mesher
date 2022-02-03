@@ -32,4 +32,12 @@ bool     mcmRayIntersectTriangle(
     const Vector3<float>            triangle[3],
     Vector3<float>&                 pIntersect);
 
+// Determine if ray intersects AABB
+bool     mcmRayIntersectAABB(
+    const Vector3<float>&           minB,
+    const Vector3<float>&           maxB,
+    const Vector3<float>&           rayPos,
+    const Vector3<float>&           rayDir,
+    Vector3<float>&                 pIntersect);
+
 #endif
