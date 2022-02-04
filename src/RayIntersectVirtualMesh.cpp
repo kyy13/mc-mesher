@@ -25,9 +25,9 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
 
     const Vector3<float> maxB =
         {
-            static_cast<float>(dataSize.x),
-            static_cast<float>(dataSize.y),
-            static_cast<float>(dataSize.z),
+            static_cast<float>(dataSize.x - 1),
+            static_cast<float>(dataSize.y - 1),
+            static_cast<float>(dataSize.z - 1),
         };
 
     if (!mcmRayIntersectAABB(minB, maxB, rayPos, rayDir,pIntersect))
@@ -90,20 +90,27 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
             min.z -= 1.0f;
     }
 
-    // convert to unsigned, correcting small errors in boundary collision from mcmRayIntersectAABB
-    const Vector3<uint32_t> umin =
+    // Convert to unsigned, correcting small errors in boundary collision from mcmRayIntersectAABB
+    Vector3<uint32_t> umin =
         {
             .x = (min.x < 0.0f) ? 0 : static_cast<uint32_t>(min.x),
             .y = (min.y < 0.0f) ? 0 : static_cast<uint32_t>(min.y),
             .z = (min.z < 0.0f) ? 0 : static_cast<uint32_t>(min.z),
         };
 
-    if ((umin.x >= dataSize.x - 1) ||
-        (umin.y >= dataSize.y - 1) ||
-        (umin.z >= dataSize.z - 1))
-    {
-        return McmResult::MCM_NO_INTERSECTION;
-    }
+    if (min.x > static_cast<float>(dataSize.x - 2))
+        { umin.x = dataSize.x - 2; }
+    if (min.y > static_cast<float>(dataSize.y - 2))
+        { umin.y = dataSize.y - 2; }
+    if (min.z > static_cast<float>(dataSize.z - 2))
+        { umin.z = dataSize.z - 2; }
+
+//    if ((umin.x >= dataSize.x - 1) ||
+//        (umin.y >= dataSize.y - 1) ||
+//        (umin.z >= dataSize.z - 1))
+//    {
+//        return McmResult::MCM_NO_INTERSECTION;
+//    }
 
     // Get the origin of the cube, so we can determine the contents of the cube
     uint32_t voxelIndex = umin.x + mem_w * umin.y + mem_wh * umin.z;
@@ -124,15 +131,8 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
 
     uint8_t caseIndex = mcmComputeCaseIndex(corners, isoLevel);
 
-    // Voxel is filled
-    if (caseIndex == 0xff)
-    {
-        pIntersect = rayPos;
-        return MCM_SUCCESS;
-    }
-
     // Voxel is partially filled
-    if (caseIndex != 0x00)
+    if (caseIndex != 0x00 && caseIndex != 0xff)
     {
         Vector3<float> vertices[12];
 
@@ -151,7 +151,7 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
         }
     }
 
-    // Voxel is unfilled || partially filled, but the ray missed all the triangles
+    // Voxel is filled || unfilled || partially filled, but the ray missed all the triangles
 
     // If there is no movement, then we are not going to hit anything in an unfilled box
     if (rayDir.x == 0.0f && rayDir.y == 0.0f && rayDir.z == 0.0f)
