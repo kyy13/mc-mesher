@@ -1,3 +1,6 @@
+# MCmesher
+# Kyle J Burgess
+
 add_executable(
     gm_performance_test
     src/main.cpp

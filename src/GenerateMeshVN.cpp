@@ -4,8 +4,8 @@
 #include "MCmesher.h"
 #include "Mesh.h"
 #include "Common.h"
-
 #include "LookupTable.h"
+
 #include <unordered_map>
 
 McmResult mcmGenerateMeshVN(
@@ -45,7 +45,7 @@ McmResult mcmGenerateMeshVN(
         uint32_t i;
     };
 
-    std::unordered_map<uint32_t, VertexCacheEntry> vertexCache;
+    //std::unordered_map<uint32_t, VertexCacheEntry> vertexCache;
 
     VertexCacheEntry* vertexCacheEntries[3];
 
@@ -214,10 +214,24 @@ McmResult mcmGenerateMeshVN(
 
     int memBoundedOffsets[24];
 
+    std::unordered_map<uint32_t, VertexCacheEntry> zMapA;
+    std::unordered_map<uint32_t, VertexCacheEntry> zMapB;
+
+    auto* zMapCurrent = &zMapA;
+    auto* zMapNext = &zMapB;
+
     for (; voxel != pz1; voxel += pdz)
     {
         y = meshOrigin.y;
         cubeOrigin.y = fieldOrigin.y;
+
+        // Swap maps, clear next
+        {
+            auto* temp = zMapCurrent;
+            zMapCurrent = zMapNext;
+            zMapNext = temp;
+            zMapNext->clear();
+        }
 
         // Clamp -Z adjacent memory offsets
         if (z == 0)
@@ -339,17 +353,37 @@ McmResult mcmGenerateMeshVN(
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
-                        uint32_t cacheKey = mcmComputeEdgeCacheKey(voxel - origin, w, wh, vertexData);
+                        uint32_t cacheKey;
+                        auto whichCache = zMapCurrent;
 
-                        auto it = vertexCache.find(cacheKey);
+                        {
+                            const uint32_t cacheBits = LookupTable::McmEdgeCacheLookup[vertexData];
 
-                        if (it != vertexCache.end())
+                            // Shift memory to cube that contains edge
+                            uint32_t memPos = x + w * y;
+                            if ((cacheBits & 4u) != 0) memPos += 1;
+                            if ((cacheBits & 8u) != 0) memPos += w;
+
+                            if ((cacheBits & 16u) != 0)
+                            {
+                                whichCache = zMapNext;
+                            }
+
+                            // key = (3 * cube#) + (edge# [0,2])
+                            cacheKey = 3u * memPos + (cacheBits & 0b11u);
+                        }
+
+                        //uint32_t cacheKey = mcmComputeEdgeCacheKey(voxel - origin, w, wh, vertexData);
+
+                        auto it = whichCache->find(cacheKey);
+
+                        if (it != whichCache->end())
                         {
                             vertexCacheEntries[j] = &it->second;
                         }
                         else
                         {
-                            auto cacheEntry = &vertexCache[cacheKey];
+                            auto& cacheEntry = (*whichCache)[cacheKey];
 
                             const uint32_t endpointIndex[2] =
                                 {
@@ -365,7 +399,7 @@ McmResult mcmGenerateMeshVN(
                             float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
 
                             // Lerp vertices
-                            cacheEntry->p = endpoint + k * dEndpoint;
+                            cacheEntry.p = endpoint + k * dEndpoint;
 
                             // Lerp vertex normals
 
@@ -492,12 +526,12 @@ McmResult mcmGenerateMeshVN(
 
                             const Vector3<float> dNormal = endpointNormals[1] - endpointNormals[0];
 
-                            cacheEntry->n = endpointNormals[0] + k * dNormal;
-                            cacheEntry->n.normalize();
+                            cacheEntry.n = endpointNormals[0] + k * dNormal;
+                            cacheEntry.n.normalize();
 
                             // Cache
-                            cacheEntry->i = 0xffffffffu;
-                            vertexCacheEntries[j] = cacheEntry;
+                            cacheEntry.i = 0xffffffffu;
+                            vertexCacheEntries[j] = &cacheEntry;
                         }
                     }
 

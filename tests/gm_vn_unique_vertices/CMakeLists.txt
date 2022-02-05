@@ -1,3 +1,6 @@
+# MCmesher
+# Kyle J Burgess
+
 add_executable(
     gm_vn_unique_vertices
     src/main.cpp

@@ -16,6 +16,8 @@ namespace LookupTable
     extern const uint32_t RegularCellData[256];
 
     extern const uint32_t RegularVertexData[3072];
+
+    extern const uint32_t McmEdgeCacheLookup[64];
 }
 
 #endif

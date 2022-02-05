@@ -22,25 +22,6 @@ uint8_t mcmComputeCaseIndex(const float corners[8], float isoLevel)
     return caseIndex;
 }
 
-// Lookup table for mcmComputeEdgeCacheKey
-// Indexed by vertexData (RegularVertexData & 0xFFu) where the first byte if the first corner number [0,8],
-// and the second byte is the second corner number [0,8].
-// Each element has the following bits in logical order: edgeNumber (2 bits) -> dx(1 bit) -> dy(1 bit) -> dz(1 bit)
-// 0xff is an impossible case (diagonal corner connection)
-// dx, dy, dz is 0 if the edge lies on the current vertex, 1 if the edge lies on the next vertex (positive direction on respective axis)
-
-const uint32_t McmEdgeCacheLookup[] =
-    {
-        0xff, 0x00, 0x01, 0xff, 0x02, 0xff, 0xff, 0xff,
-        0x00, 0xff, 0xff, 0x05, 0xff, 0x06, 0xff, 0xff,
-        0x01, 0xff, 0xff, 0x08, 0xff, 0xff, 0x0a, 0xff,
-        0xff, 0x05, 0x08, 0xff, 0xff, 0xff, 0xff, 0x0e,
-        0x02, 0xff, 0xff, 0xff, 0xff, 0x10, 0x11, 0xff,
-        0xff, 0x06, 0xff, 0xff, 0x10, 0xff, 0xff, 0x15,
-        0xff, 0xff, 0x0a, 0xff, 0x11, 0xff, 0xff, 0x18,
-        0xff, 0xff, 0xff, 0x0e, 0xff, 0x15, 0x18, 0xff,
-    };
-
 /*
  *      edge key = (vertex#) * 3 + (edge# [0,2])
  *
@@ -56,7 +37,7 @@ const uint32_t McmEdgeCacheLookup[] =
 
 uint32_t mcmComputeEdgeCacheKey(uint32_t memPos, uint32_t memDy, uint32_t memDz, uint32_t vertexData)
 {
-    const uint32_t cacheBits = McmEdgeCacheLookup[vertexData];
+    const uint32_t cacheBits = LookupTable::McmEdgeCacheLookup[vertexData];
 
     // Shift memory to cube that contains edge
     if ((cacheBits & 4u ) != 0) memPos += 1;
