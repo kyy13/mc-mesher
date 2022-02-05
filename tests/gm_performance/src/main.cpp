@@ -116,7 +116,7 @@ int main()
     mcmDeleteMeshBuffer(mesh);
     mesh = mcmCreateMeshBuffer();
 
-    std::cout << "GenerateMeshFN 256^3 => ";
+    std::cout << "mcmGenerateMeshFN 256^3 => ";
     t = TestGenerateMesh<mcmGenerateMeshFN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
     std::cout << t << "s (avg = ";
     std::cout << (t / 256.0f) << "s)\n";
