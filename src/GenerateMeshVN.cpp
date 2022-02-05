@@ -8,6 +8,81 @@
 
 #include <unordered_map>
 
+void generateCubeNormal(const float* voxel, const int memBoundedOffsets[24], const float corners[8], uint32_t whichCorner, Vector3<float>* normals)
+{
+    switch (whichCorner)
+    {
+        case 0:
+            normals[0] =
+                {
+                    .x = *(voxel + memBoundedOffsets[0]) - corners[1],
+                    .y = *(voxel + memBoundedOffsets[8]) - corners[2],
+                    .z = *(voxel + memBoundedOffsets[16]) - corners[4],
+                };
+            break;
+        case 1:
+            normals[1] =
+                {
+                    .x = corners[0] - *(voxel + memBoundedOffsets[4]),
+                    .y = *(voxel + memBoundedOffsets[9]) - corners[3],
+                    .z = *(voxel + memBoundedOffsets[17]) - corners[5],
+                };
+            break;
+        case 2:
+            normals[2] =
+                {
+                    .x = *(voxel + memBoundedOffsets[1]) - corners[3],
+                    .y = corners[0] - *(voxel + memBoundedOffsets[12]),
+                    .z = *(voxel + memBoundedOffsets[18]) - corners[6],
+                };
+            break;
+        case 3:
+            normals[3] =
+                {
+                    .x = corners[2] - *(voxel + memBoundedOffsets[5]),
+                    .y = corners[1] - *(voxel + memBoundedOffsets[13]),
+                    .z = *(voxel + memBoundedOffsets[19]) - corners[7],
+                };
+            break;
+        case 4:
+            normals[4] =
+                {
+                    .x = *(voxel + memBoundedOffsets[2]) - corners[5],
+                    .y = *(voxel + memBoundedOffsets[10]) - corners[6],
+                    .z = corners[0] - *(voxel + memBoundedOffsets[20]),
+                };
+            break;
+        case 5:
+            normals[5] =
+                {
+                    .x = corners[4] - *(voxel + memBoundedOffsets[6]),
+                    .y = *(voxel + memBoundedOffsets[11]) - corners[7],
+                    .z = corners[1] - *(voxel + memBoundedOffsets[21]),
+                };
+            break;
+        case 6:
+            normals[6] =
+                {
+                    .x = *(voxel + memBoundedOffsets[3]) - corners[7],
+                    .y = corners[4] - *(voxel + memBoundedOffsets[14]),
+                    .z = corners[2] - *(voxel + memBoundedOffsets[22]),
+                };
+            break;
+        case 7:
+            normals[7] =
+                {
+                    .x = corners[6] - *(voxel + memBoundedOffsets[7]),
+                    .y = corners[5] - *(voxel + memBoundedOffsets[15]),
+                    .z = corners[3] - *(voxel + memBoundedOffsets[23]),
+                };
+            break;
+        default:
+            break;
+    }
+
+    normals[whichCorner].normalize();
+}
+
 McmResult mcmGenerateMeshVN(
     McmMeshBuffer* mesh,
     const float* data,
@@ -44,8 +119,6 @@ McmResult mcmGenerateMeshVN(
         Vector3<float> n;
         uint32_t i;
     };
-
-    //std::unordered_map<uint32_t, VertexCacheEntry> vertexCache;
 
     VertexCacheEntry* vertexCacheEntries[3];
 
@@ -444,80 +517,12 @@ McmResult mcmGenerateMeshVN(
 
                             for (uint32_t m = 0; m != 2; ++m)
                             {
-                                size_t cornerIndex = endpointIndex[m];
+                                uint32_t cornerIndex = endpointIndex[m];
 
                                 if (!isCubeNormalCalculated[cornerIndex])
                                 {
-                                    // Generate corner vertex normal
-                                    switch (cornerIndex)
-                                    {
-                                        case 0:
-                                            cubeNormals[0] =
-                                                {
-                                                    .x = *(voxel + memBoundedOffsets[0]) - corner[1],
-                                                    .y = *(voxel + memBoundedOffsets[8]) - corner[2],
-                                                    .z = *(voxel + memBoundedOffsets[16]) - corner[4],
-                                                };
-                                            break;
-                                        case 1:
-                                            cubeNormals[1] =
-                                                {
-                                                    .x = corner[0] - *(voxel + memBoundedOffsets[4]),
-                                                    .y = *(voxel + memBoundedOffsets[9]) - corner[3],
-                                                    .z = *(voxel + memBoundedOffsets[17]) - corner[5],
-                                                };
-                                            break;
-                                        case 2:
-                                            cubeNormals[2] =
-                                                {
-                                                    .x = *(voxel + memBoundedOffsets[1]) - corner[3],
-                                                    .y = corner[0] - *(voxel + memBoundedOffsets[12]),
-                                                    .z = *(voxel + memBoundedOffsets[18]) - corner[6],
-                                                };
-                                            break;
-                                        case 3:
-                                            cubeNormals[3] =
-                                                {
-                                                    .x = corner[2] - *(voxel + memBoundedOffsets[5]),
-                                                    .y = corner[1] - *(voxel + memBoundedOffsets[13]),
-                                                    .z = *(voxel + memBoundedOffsets[19]) - corner[7],
-                                                };
-                                            break;
-                                        case 4:
-                                            cubeNormals[4] =
-                                                {
-                                                    .x = *(voxel + memBoundedOffsets[2]) - corner[5],
-                                                    .y = *(voxel + memBoundedOffsets[10]) - corner[6],
-                                                    .z = corner[0] - *(voxel + memBoundedOffsets[20]),
-                                                };
-                                            break;
-                                        case 5:
-                                            cubeNormals[5] =
-                                                {
-                                                    .x = corner[4] - *(voxel + memBoundedOffsets[6]),
-                                                    .y = *(voxel + memBoundedOffsets[11]) - corner[7],
-                                                    .z = corner[1] - *(voxel + memBoundedOffsets[21]),
-                                                };
-                                            break;
-                                        case 6:
-                                            cubeNormals[6] =
-                                                {
-                                                    .x = *(voxel + memBoundedOffsets[3]) - corner[7],
-                                                    .y = corner[4] - *(voxel + memBoundedOffsets[14]),
-                                                    .z = corner[2] - *(voxel + memBoundedOffsets[22]),
-                                                };
-                                            break;
-                                        case 7:
-                                            cubeNormals[7] =
-                                                {
-                                                    .x = corner[6] - *(voxel + memBoundedOffsets[7]),
-                                                    .y = corner[5] - *(voxel + memBoundedOffsets[15]),
-                                                    .z = corner[3] - *(voxel + memBoundedOffsets[23]),
-                                                };
-                                            break;
-                                    }
+                                    generateCubeNormal(voxel, memBoundedOffsets, corner, cornerIndex, cubeNormals);
 
-                                    cubeNormals[cornerIndex].normalize();
                                     isCubeNormalCalculated[cornerIndex] = true;
                                 }
 

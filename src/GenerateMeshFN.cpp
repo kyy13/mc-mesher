@@ -38,15 +38,6 @@ McmResult mcmGenerateMeshFN(
         return McmResult::MCM_OUT_OF_BOUNDS_Z;
     }
 
-    struct VertexCacheEntry
-    {
-        Vector3<float> p;
-    };
-
-    std::unordered_map<uint32_t, VertexCacheEntry> vertexCache;
-
-    VertexCacheEntry* vertexCacheEntries[3];
-
     float corner[8];
 
     auto& vertices = mesh->vertices;
@@ -162,71 +153,57 @@ McmResult mcmGenerateMeshFN(
                 // Step vertices
                 for (uint32_t i = 0; i != vertCount; i += 3)
                 {
+                    Vector3<float> vbuffer[3];
+
                     for (uint32_t j = 0; j != 3; ++j)
                     {
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
-                        uint32_t cacheKey = mcmComputeEdgeCacheKey(voxel - origin, w, wh, vertexData);
+                        const uint32_t endpointIndex[2] =
+                            {
+                                vertexData >> 3u,
+                                vertexData & 0x07u,
+                            };
 
-                        auto it = vertexCache.find(cacheKey);
+                        const Vector3<float>& d0 = LookupTable::UnitCube[endpointIndex[0]];
+                        const Vector3<float> endpoint = cubeOrigin + d0;
+                        const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - d0;
 
-                        if (it != vertexCache.end())
-                        {
-                            vertexCacheEntries[j] = &it->second;
-                        }
-                        else
-                        {
-                            auto cacheEntry = &vertexCache[cacheKey];
+                        // Lerp factor between endpoints
+                        float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
 
-                            const uint32_t endpointIndex[2] =
-                                {
-                                    vertexData >> 3u,
-                                    vertexData & 0x07u,
-                                };
-
-                            const Vector3<float>& d0 = LookupTable::UnitCube[endpointIndex[0]];
-                            const Vector3<float> endpoint = cubeOrigin + d0;
-                            const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - d0;
-
-                            // Lerp factor between endpoints
-                            float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
-
-                            // Lerp vertices
-                            cacheEntry->p = endpoint + k * dEndpoint;
-
-                            // Cache
-                            vertexCacheEntries[j] = cacheEntry;
-                        }
+                        // Lerp vertices
+                        vbuffer[j] = endpoint + k * dEndpoint;
                     }
 
                     // Calculate triangle segments that are too small to render
                     constexpr float epsilon = 0.0000001f;
 
-                    Vector3 d01 = vertexCacheEntries[1]->p - vertexCacheEntries[0]->p;
+                    Vector3 d01 = vbuffer[1] - vbuffer[0];
 
                     if (fabsf(d01.x) < epsilon && fabsf(d01.y) < epsilon && fabsf(d01.z) < epsilon)
                     {
                         continue;
                     }
 
-                    Vector3 d12 = vertexCacheEntries[2]->p - vertexCacheEntries[1]->p;
+                    Vector3 d12 = vbuffer[2] - vbuffer[1];
 
                     if (fabsf(d12.x) < epsilon && fabsf(d12.y) < epsilon && fabsf(d12.z) < epsilon)
                     {
                         continue;
                     }
 
-                    Vector3 d02 = vertexCacheEntries[2]->p - vertexCacheEntries[0]->p;
+                    Vector3 d02 = vbuffer[2] - vbuffer[0];
 
                     if (fabsf(d02.x) < epsilon && fabsf(d02.y) < epsilon && fabsf(d02.z) < epsilon)
                     {
                         continue;
                     }
 
-                    vertices.push_back(vertexCacheEntries[0]->p);
-                    vertices.push_back(vertexCacheEntries[1]->p);
-                    vertices.push_back(vertexCacheEntries[2]->p);
+                    vertices.push_back(vbuffer[0]);
+                    vertices.push_back(vbuffer[1]);
+                    vertices.push_back(vbuffer[2]);
 
                     Vector3<float> triFaceNormal = Vector3<float>::cross(d01, d02);
                     triFaceNormal.normalize();
