@@ -51,20 +51,10 @@ public class MCmesher
 
         if (r != McmResult.MCM_SUCCESS)
         {
-            switch(r)
-            {
-            case McmResult.MCM_MESH_BUFFER_IS_NULL:
-                throw new NullReferenceException();
-            case McmResult.MCM_OUT_OF_BOUNDS_X:
-            case McmResult.MCM_OUT_OF_BOUNDS_Y:
-            case McmResult.MCM_OUT_OF_BOUNDS_Z:
-                throw new ArgumentOutOfRangeException();
-            default:
-                throw new Exception();
-            };
+            MeshResultToException(r);
         }
 
-        ApplyMeshToMeshFilter(meshFilter);
+        ApplyMeshToMeshFilter(meshFilter, dataSize);
     }
 
     // Generate a procedural mesh
@@ -93,20 +83,10 @@ public class MCmesher
 
         if (r != McmResult.MCM_SUCCESS)
         {
-            switch(r)
-            {
-            case McmResult.MCM_MESH_BUFFER_IS_NULL:
-                throw new NullReferenceException();
-            case McmResult.MCM_OUT_OF_BOUNDS_X:
-            case McmResult.MCM_OUT_OF_BOUNDS_Y:
-            case McmResult.MCM_OUT_OF_BOUNDS_Z:
-                throw new ArgumentOutOfRangeException();
-            default:
-                throw new Exception();
-            };
+            MeshResultToException(r);
         }
 
-        ApplyMeshToMeshFilter(meshFilter);
+        ApplyMeshToMeshFilter(meshFilter, dataSize);
     }
 
     public static Vector3? RayIntersectVirtualMesh(float[] data, Vector3u dataSize, float isoLevel, Vector3 rayPos, Vector3 rayDir)
@@ -133,7 +113,22 @@ public class MCmesher
         return null;
     }
 
-    protected void ApplyMeshToMeshFilter(MeshFilter meshFilter)
+    protected void MeshResultToException(McmResult r)
+    {
+        switch(r)
+        {
+        case McmResult.MCM_MESH_BUFFER_IS_NULL:
+            throw new NullReferenceException();
+        case McmResult.MCM_OUT_OF_BOUNDS_X:
+        case McmResult.MCM_OUT_OF_BOUNDS_Y:
+        case McmResult.MCM_OUT_OF_BOUNDS_Z:
+            throw new ArgumentOutOfRangeException();
+        default:
+            throw new Exception();
+        };
+    }
+
+    protected void ApplyMeshToMeshFilter(MeshFilter meshFilter, Vector3u maxBounds)
     {
         var dataArray = Mesh.AllocateWritableMeshData(1);
         var data = dataArray[0];
@@ -175,7 +170,12 @@ public class MCmesher
 
         Mesh.ApplyAndDisposeWritableMeshData(dataArray, mesh);
 
-        mesh.RecalculateBounds();
+        mesh.bounds.min = new Vector3(0.0f, 0.0f, 0.0f);
+
+        mesh.bounds.max = new Vector3(
+            (float)(dataSize.x - 1),
+            (float)(dataSize.y - 1),
+            (float)(dataSize.z - 1));
 
         meshFilter.mesh = mesh;
     }

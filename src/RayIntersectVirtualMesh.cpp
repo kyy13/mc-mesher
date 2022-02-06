@@ -105,13 +105,6 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
     if (min.z > static_cast<float>(dataSize.z - 2))
         { umin.z = dataSize.z - 2; }
 
-//    if ((umin.x >= dataSize.x - 1) ||
-//        (umin.y >= dataSize.y - 1) ||
-//        (umin.z >= dataSize.z - 1))
-//    {
-//        return McmResult::MCM_NO_INTERSECTION;
-//    }
-
     // Get the origin of the cube, so we can determine the contents of the cube
     uint32_t voxelIndex = umin.x + mem_w * umin.y + mem_wh * umin.z;
     const float* voxel = &data[voxelIndex];
