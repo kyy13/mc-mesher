@@ -54,7 +54,7 @@ public class MCmesher
             MeshResultToException(r);
         }
 
-        ApplyMeshToMeshFilter(meshFilter, dataSize);
+        ApplyMeshToMeshFilter(meshFilter);
     }
 
     // Generate a procedural mesh
@@ -86,7 +86,7 @@ public class MCmesher
             MeshResultToException(r);
         }
 
-        ApplyMeshToMeshFilter(meshFilter, dataSize);
+        ApplyMeshToMeshFilter(meshFilter);
     }
 
     public static Vector3? RayIntersectVirtualMesh(float[] data, Vector3u dataSize, float isoLevel, Vector3 rayPos, Vector3 rayDir)
@@ -128,7 +128,7 @@ public class MCmesher
         };
     }
 
-    protected void ApplyMeshToMeshFilter(MeshFilter meshFilter, Vector3u maxBounds)
+    protected void ApplyMeshToMeshFilter(MeshFilter meshFilter)
     {
         var dataArray = Mesh.AllocateWritableMeshData(1);
         var data = dataArray[0];
@@ -170,12 +170,7 @@ public class MCmesher
 
         Mesh.ApplyAndDisposeWritableMeshData(dataArray, mesh);
 
-        mesh.bounds.min = new Vector3(0.0f, 0.0f, 0.0f);
-
-        mesh.bounds.max = new Vector3(
-            (float)(dataSize.x - 1),
-            (float)(dataSize.y - 1),
-            (float)(dataSize.z - 1));
+        mesh.RecalculateBounds();
 
         meshFilter.mesh = mesh;
     }
