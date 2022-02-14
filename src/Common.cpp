@@ -22,32 +22,6 @@ uint8_t mcmComputeCaseIndex(const float corners[8], float isoLevel)
     return caseIndex;
 }
 
-/*
- *      edge key = (vertex#) * 3 + (edge# [0,2])
- *
- *            vz (e#2)
- *            |
- *            |                     z
- *            |                     |
- *            v ------- vy (e#1)    o----> y
- *           /                     /
- *          /                     x
- *         vx (e#0)
- */
-
-uint32_t mcmComputeEdgeCacheKey(uint32_t memPos, uint32_t memDy, uint32_t memDz, uint32_t vertexData)
-{
-    const uint32_t cacheBits = LookupTable::McmEdgeCacheLookup[vertexData];
-
-    // Shift memory to cube that contains edge
-    if ((cacheBits & 4u ) != 0) memPos += 1;
-    if ((cacheBits & 8u ) != 0) memPos += memDy;
-    if ((cacheBits & 16u) != 0) memPos += memDz;
-
-    // key = (3 * cube#) + (edge# [0,2])
-    return 3u * memPos + (cacheBits & 0b11u);
-}
-
 uint32_t mcmComputeCaseGeometry(const float corners[8], float isoLevel, Vector3<float> vertices[12])
 {
     uint8_t caseIndex = mcmComputeCaseIndex(corners, isoLevel);

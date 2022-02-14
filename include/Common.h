@@ -8,16 +8,9 @@
 #include <cstdint>
 
 // Generate a Case Index for a cube
-uint8_t mcmComputeCaseIndex(
+uint8_t  mcmComputeCaseIndex(
     const float                     corners[8],
     float                           isoLevel);
-
-// Compute a cache key for an edge
-uint32_t mcmComputeEdgeCacheKey(
-    uint32_t                        memPos,
-    uint32_t                        memDy,
-    uint32_t                        memDz,
-    uint32_t                        vertexData);
 
 // Compute single cube geometry
 uint32_t mcmComputeCaseGeometry(
