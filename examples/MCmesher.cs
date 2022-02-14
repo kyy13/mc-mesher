@@ -177,13 +177,9 @@ public class MCmesher
         data.subMeshCount = 1;
         data.SetSubMesh(0, subMeshDescriptor, MeshUpdateFlags.DontRecalculateBounds);
 
-        var mesh = new Mesh();
+        Mesh.ApplyAndDisposeWritableMeshData(dataArray, meshFilter.mesh);
 
-        Mesh.ApplyAndDisposeWritableMeshData(dataArray, mesh);
-
-        mesh.RecalculateBounds();
-
-        meshFilter.mesh = mesh;
+        meshFilter.mesh.RecalculateBounds();
     }
 
     protected IntPtr m_meshBuffer;
