@@ -21,12 +21,18 @@ public class MCmesher
         McmDeleteMeshBuffer(m_meshBuffer);
     }
 
-    // Generate a procedural mesh
-    // dataSize    size of scalar field data (points)
-    // meshOrigin  mesh origin in scalar field (cubes)
-    // meshSize    mesh size in scalar field (cubes)
+    // Generate a procedural mesh (with 3D array)
+    // -Pass an existing meshFilter.mesh into GenerateMesh as a reference,
+    // avoid using Mesh.Clear() and creating a new Mesh(), because GenerateMesh() is designed to
+    // handle overwriting existing meshes.
+    // voxelData       the scalara data field of the marching cubes mesh
+    // dataSize        size of scalar field data (points)
+    // meshOrigin      mesh origin in scalar field (cubes)
+    // meshSize        mesh size in scalar field (cubes)
+    // isoLevel        voxelData value > isoLevel means it's inside the surface
+    // vertexNormals   true means use iterpolated vertex normals, false means use face normals
     public void GenerateMesh(
-        MeshFilter meshFilter,
+        ref Mesh mesh,
         float[,,] voxelData,
         Vector3u dataSize,
         Vector3u meshOrigin,
@@ -50,15 +56,13 @@ public class MCmesher
             MeshResultToException(r);
         }
 
-        ApplyMeshToMeshFilter(meshFilter, dataSize);
+        ApplyMeshToMeshFilter(ref mesh, dataSize);
     }
 
-    // Generate a procedural mesh
-    // dataSize    size of scalar field data (points)
-    // meshOrigin  mesh origin in scalar field (cubes)
-    // meshSize    mesh size in scalar field (cubes)
+    // Generate a procedural mesh (with 1D array of size = width * height * depth)
+    // see GenerateMesh() 3D array above for details
     public void GenerateMesh(
-        MeshFilter meshFilter,
+        ref Mesh mesh,
         float[] voxelData,
         Vector3u dataSize,
         Vector3u meshOrigin,
@@ -82,9 +86,11 @@ public class MCmesher
             MeshResultToException(r);
         }
 
-        ApplyMeshToMeshFilter(meshFilter, dataSize);
+        ApplyMeshToMeshFilter(ref mesh, dataSize);
     }
 
+    // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
+    // If an intersection occurs, then returns the point of intersection, otherwise returns null
     public static Vector3? RayIntersectVirtualMesh(float[] data, Vector3u dataSize, float isoLevel, Vector3 rayPos, Vector3 rayDir)
     {
         Vector3 pIntersect;
@@ -97,6 +103,8 @@ public class MCmesher
         return null;
     }
 
+    // RayIntersectVirtualMesh (with 1D array of size = width * height * depth)
+    // see RayIntersectVirtualMesh() 3D array above for details
     public static Vector3? RayIntersectVirtualMesh(float[,,] data, Vector3u dataSize, float isoLevel, Vector3 rayPos, Vector3 rayDir)
     {
         Vector3 pIntersect;
@@ -124,7 +132,7 @@ public class MCmesher
         };
     }
 
-    protected void ApplyMeshToMeshFilter(MeshFilter meshFilter, Vector3u boundsMaxU)
+    protected void ApplyMeshToMeshFilter(ref Mesh mesh, Vector3u boundsMaxU)
     {
         var dataArray = Mesh.AllocateWritableMeshData(1);
         var data = dataArray[0];
@@ -173,9 +181,9 @@ public class MCmesher
         data.subMeshCount = 1;
         data.SetSubMesh(0, subMeshDescriptor, MeshUpdateFlags.DontRecalculateBounds);
 
-        Mesh.ApplyAndDisposeWritableMeshData(dataArray, meshFilter.mesh);
+        Mesh.ApplyAndDisposeWritableMeshData(dataArray, mesh);
 
-        meshFilter.mesh.RecalculateBounds();
+        mesh.RecalculateBounds();
     }
 
     protected IntPtr m_meshBuffer;
