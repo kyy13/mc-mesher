@@ -2,6 +2,9 @@
 by Kyle J Burgess (github.com/kyy13)
 
 
+![disp](https://user-images.githubusercontent.com/58697284/154577110-bcabfc84-7365-446f-804d-63e563f7a53b.png)
+
+
 MCmesher is a lightweight marching cubes mesh generator for c++, c#, and Unity.
 
 Features
@@ -10,8 +13,12 @@ Features
 2. Trace rays through a scalar field and detect collision with the mesh
 
 
-![disp](https://user-images.githubusercontent.com/58697284/154577110-bcabfc84-7365-446f-804d-63e563f7a53b.png)
+Unity Quick-Start
 
+1. Download the release from https://github.com/kyy13/MCmesher/releases
+2. Drop the libMCmesher.dll and the MCmesher.cs wrapper file into the Assets directory
+
+---
 
 MCmesher uses lookup tables modified from the transvoxel algorithm [1].
 
