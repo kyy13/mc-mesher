@@ -7,22 +7,21 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 
-public class MCmesher
+public class MCmesher : IDisposable
 {
-    // Allocate intermediate mesh data (once for every mesh that's generated here)
-    public void AllocateGeneratorMemory()
+    public MCmesher()
     {
         m_meshBuffer = McmCreateMeshBuffer();
     }
 
-    // Deallocate intermediate mesh data (once for every mesh that's generated here)
-    public void FreeGeneratorMemory()
+    public void Dispose()
     {
-        McmDeleteMeshBuffer(m_meshBuffer);
+        TryDispose();
+        GC.SuppressFinalize(this);
     }
 
     // Generate a procedural mesh (with 3D array)
-    // -Pass an existing meshFilter.mesh into GenerateMesh as a reference,
+    // Pass an existing meshFilter.mesh into GenerateMesh as a reference,
     // avoid using Mesh.Clear() and creating a new Mesh(), because GenerateMesh() is designed to
     // handle overwriting existing meshes.
     // voxelData       the scalara data field of the marching cubes mesh
@@ -186,7 +185,23 @@ public class MCmesher
         mesh.RecalculateBounds();
     }
 
+    ~MCmesher()
+    {
+        TryDispose();
+    }
+
+    protected virtual void TryDispose()
+    {
+        if (!m_disposed)
+        {
+            McmDeleteMeshBuffer(m_meshBuffer);
+            m_disposed = true;
+        }
+    }
+
     protected IntPtr m_meshBuffer;
+
+    protected bool m_disposed = false;
 
     // -------------------------------------------
     // MCmesher C++ Library Methods and Structs
