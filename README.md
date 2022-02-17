@@ -15,8 +15,8 @@ Features
 
 Unity Quick-Start
 
-1. Download the release from https://github.com/kyy13/MCmesher/releases
-2. Drop the libMCmesher.dll and the MCmesher.cs wrapper file into the Assets directory
+1. Download the latest release from https://github.com/kyy13/MCmesher/releases
+2. Drop the libMCmesher.dll and MCmesher.cs wrapper file into the Assets directory
 
 ---
 
