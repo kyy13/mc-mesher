@@ -75,7 +75,7 @@ details
 
 </details>
 
----
+## Credits
 
 MCmesher uses lookup tables modified from the transvoxel algorithm [1].
 
