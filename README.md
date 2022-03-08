@@ -21,7 +21,7 @@ details
 - Choose between face normal vectors, and vertex normal vectors.
 
 #### Algorithms
-- Trace rays through a scalar field and detect virtual mesh collision
+- Trace rays through the scalar field used to generate a mesh, rather than the mesh itself; detects collision with the mesh and returns the point of intersection. This method will detect collision much faster than implementations operating on the mesh data itself.
 </details>
 
 ## Performance
