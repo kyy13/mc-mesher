@@ -35,8 +35,8 @@ details
 - MCmesher is designed to produce indexed marching cubes meshes with minimal vertices.
 - Meshes generated with face normals tend to be much larger due to the inability to index vertices that share the same position, because they have different normal vectors.
 - Mesh generation functions have `O(X*Y*Z)` time complexity where *X*, *Y*, and *Z* refer to the dimensions of the scalar field used to produce the mesh.
-- Meshes with face normals have `O(1)` memory usage complexity
-- Meshes with vertex normals have `O(X*Y)` memory usage complexity.
+- Meshes with face normals have `O(1)` temporary memory usage.
+- Meshes with vertex normals have `O(X*Y)` temporary memory usage.
 
 </details>
 
