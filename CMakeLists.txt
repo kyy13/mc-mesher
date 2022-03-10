@@ -1,8 +1,8 @@
-# MCmesher
+# mc-mesher
 # Kyle J Burgess
 
 cmake_minimum_required(VERSION 3.7)
-project(MCmesher)
+project(mcmesher)
 
 option(BUILD_TESTS "build tests?" ON)
 
@@ -10,12 +10,12 @@ option(BUILD_TESTS "build tests?" ON)
 add_library(
     ${PROJECT_NAME}
     SHARED
-    src/MCmesher.cpp
-    src/GenerateMeshFN.cpp
-    src/GenerateMeshVN.cpp
-    src/RayIntersectVirtualMesh.cpp
-    src/LookupTable.cpp
-    src/Common.cpp
+    src/mc_mesher.cpp
+    src/McmGenerateMeshFN.cpp
+    src/McmGenerateMeshVN.cpp
+    src/McmRayIntersectVirtualMesh.cpp
+    src/McmLookupTable.cpp
+    src/McmCommon.cpp
 )
 
 # includes

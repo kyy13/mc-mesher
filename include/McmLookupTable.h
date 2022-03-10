@@ -1,10 +1,10 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
-#ifndef MC_MESHER_LOOKUP_TABLE_H
-#define MC_MESHER_LOOKUP_TABLE_H
+#ifndef MCM_LOOKUP_TABLE_H
+#define MCM_LOOKUP_TABLE_H
 
-#include <Vector.h>
+#include <McmVector.h>
 #include <cstdint>
 
 namespace LookupTable

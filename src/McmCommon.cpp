@@ -1,8 +1,8 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
-#include "Common.h"
-#include "LookupTable.h"
+#include "McmCommon.h"
+#include "McmLookupTable.h"
 
 #include <cstring>
 

@@ -1,7 +1,7 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
-#include "MCmesher.h"
+#include "mc_mesher.h"
 
 #include <functional>
 #include <vector>

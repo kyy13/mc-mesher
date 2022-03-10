@@ -1,9 +1,9 @@
-// MCmesher TEST file
+// mc-mesher TEST file
 // Kyle J Burgess
 
-#include "MCmesher.h"
+#include "mc_mesher.h"
 #include "gradient_noise.h"
-#include "Common.h"
+#include "McmCommon.h"
 
 #include <cstring>
 #include <vector>

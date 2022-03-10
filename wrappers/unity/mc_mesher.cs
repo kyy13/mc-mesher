@@ -1,4 +1,4 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
 using System;
@@ -7,9 +7,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections.LowLevel.Unsafe;
 
-public class MCmesher : IDisposable
+public class McmMeshBuffer : IDisposable
 {
-    public MCmesher()
+    public McmMeshBuffer()
     {
         m_meshBuffer = McmCreateMeshBuffer();
     }
@@ -52,10 +52,10 @@ public class MCmesher : IDisposable
 
         if (r != McmResult.MCM_SUCCESS)
         {
-            MeshResultToException(r);
+            throw new Exception(r.ToString());
         }
 
-        ApplyMeshToMeshFilter(ref mesh, dataSize);
+        ApplyMesh(ref mesh, dataSize);
     }
 
     // Generate a procedural mesh (with 1D array of size = width * height * depth)
@@ -82,10 +82,10 @@ public class MCmesher : IDisposable
 
         if (r != McmResult.MCM_SUCCESS)
         {
-            MeshResultToException(r);
+            throw new Exception(r.ToString());
         }
 
-        ApplyMeshToMeshFilter(ref mesh, dataSize);
+        ApplyMesh(ref mesh, dataSize);
     }
 
     // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
@@ -116,22 +116,7 @@ public class MCmesher : IDisposable
         return null;
     }
 
-    protected void MeshResultToException(McmResult r)
-    {
-        switch(r)
-        {
-        case McmResult.MCM_MESH_BUFFER_IS_NULL:
-            throw new NullReferenceException();
-        case McmResult.MCM_OUT_OF_BOUNDS_X:
-        case McmResult.MCM_OUT_OF_BOUNDS_Y:
-        case McmResult.MCM_OUT_OF_BOUNDS_Z:
-            throw new ArgumentOutOfRangeException();
-        default:
-            throw new Exception();
-        };
-    }
-
-    protected void ApplyMeshToMeshFilter(ref Mesh mesh, Vector3u boundsMaxU)
+    protected void ApplyMesh(ref Mesh mesh, Vector3u boundsMaxU)
     {
         var dataArray = Mesh.AllocateWritableMeshData(1);
         var data = dataArray[0];
@@ -185,7 +170,7 @@ public class MCmesher : IDisposable
         mesh.RecalculateBounds();
     }
 
-    ~MCmesher()
+    ~McmMeshBuffer()
     {
         TryDispose();
     }
@@ -204,7 +189,7 @@ public class MCmesher : IDisposable
     protected bool m_disposed = false;
 
     // -------------------------------------------
-    // MCmesher C++ Library Methods and Structs
+    // mc-mesher C++ Library Methods and Structs
     // -------------------------------------------
 
     // Vector3 of uint
@@ -216,7 +201,7 @@ public class MCmesher : IDisposable
         [FieldOffset(8)] public uint z;
     }
 
-    // Result of MCmesher functions
+    // Result of mc-mesher functions
     protected enum McmResult
     {
         MCM_SUCCESS                         = 0,            // Function was successful
@@ -228,16 +213,16 @@ public class MCmesher : IDisposable
     };
 
     // Create an McmMeshBuffer and return its handle (pointer)
-    [DllImport("libMCmesher", EntryPoint = "mcmCreateMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmCreateMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
     protected static extern IntPtr      McmCreateMeshBuffer();
 
     // Delete an McmMeshBuffer, invalidating the handle
-    [DllImport("libMCmesher", EntryPoint = "mcmDeleteMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmDeleteMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
     protected static extern void        McmDeleteMeshBuffer(
         IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
 
     // Generate a marching cubes mesh with vertex normals, and store the results in an McmMeshBuffer
-    [DllImport("libMCmesher", EntryPoint = "mcmGenerateMeshVN", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmGenerateMeshVN", CallingConvention = CallingConvention.Cdecl)]
     protected static extern McmResult   McmGenerateMeshVN(
         IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
         float[]                             data,           // 3D field of scalar floating-point values as a contiguous array
@@ -247,7 +232,7 @@ public class MCmesher : IDisposable
         float                               isoLevel);      // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
 
     // Generate a marching cubes mesh with vertex normals, and store the results in an McmMeshBuffer
-    [DllImport("libMCmesher", EntryPoint = "mcmGenerateMeshVN", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmGenerateMeshVN", CallingConvention = CallingConvention.Cdecl)]
     protected static extern McmResult   McmGenerateMeshVN(
         IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
         float[,,]                           data,           // 3D field of scalar floating-point values as a contiguous array
@@ -257,7 +242,7 @@ public class MCmesher : IDisposable
         float                               isoLevel);      // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
 
     // Generate a marching cubes mesh with face normals, and store the results in an McmMeshBuffer
-    [DllImport("libMCmesher", EntryPoint = "mcmGenerateMeshFN", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmGenerateMeshFN", CallingConvention = CallingConvention.Cdecl)]
     protected static extern McmResult   McmGenerateMeshFN(
         IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
         float[]                             data,           // 3D field of scalar floating-point values as a contiguous array
@@ -267,7 +252,7 @@ public class MCmesher : IDisposable
         float                               isoLevel);      // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
 
     // Generate a marching cubes mesh with vertex normals, and store the results in an McmMeshBuffer
-    [DllImport("libMCmesher", EntryPoint = "mcmGenerateMeshFN", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmGenerateMeshFN", CallingConvention = CallingConvention.Cdecl)]
     protected static extern McmResult   McmGenerateMeshFN(
         IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
         float[,,]                           data,           // 3D field of scalar floating-point values as a contiguous array
@@ -279,7 +264,7 @@ public class MCmesher : IDisposable
     // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
     // otherwise, mcmRayIntersectMesh returns MCM_NO_INTERSECTION
-    [DllImport("libMCmesher", EntryPoint = "mcmRayIntersectVirtualMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmRayIntersectVirtualMesh", CallingConvention = CallingConvention.Cdecl)]
     protected static extern McmResult   McmRayIntersectVirtualMesh(
         float[]                             data,           // 3D field of scalar floating-point values as a contiguous array
         Vector3u                            dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
@@ -291,7 +276,7 @@ public class MCmesher : IDisposable
     // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
     // otherwise, mcmRayIntersectMesh returns MCM_NO_INTERSECTION
-    [DllImport("libMCmesher", EntryPoint = "mcmRayIntersectVirtualMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmRayIntersectVirtualMesh", CallingConvention = CallingConvention.Cdecl)]
     protected static extern McmResult   McmRayIntersectVirtualMesh(
         float[,,]                           data,           // 3D field of scalar floating-point values as a contiguous array
         Vector3u                            dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
@@ -301,34 +286,34 @@ public class MCmesher : IDisposable
         out Vector3                         pIntersect);    // The point of intersection if an intersection occurred
 
     // Count the number of vertices in the mesh
-    [DllImport("libMCmesher", EntryPoint = "mcmCountVertices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmCountVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint        McmCountVertices(
         IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
 
     // Copies vertices into a buffer
-    [DllImport("libMCmesher", EntryPoint = "mcmCopyVertices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmCopyVertices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void McmCopyVertices(
         IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
         void*                               dstBuffer);     // Destination buffer of Vector3<float> (allocated size must be >= mcmCountVertices(meshBuffer))
 
     // Count the number of normals in the mesh
-    [DllImport("libMCmesher", EntryPoint = "mcmCountNormals", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmCountNormals", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint        McmCountNormals(
         IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
 
     // Copies normals into a buffer
-    [DllImport("libMCmesher", EntryPoint = "mcmCopyNormals", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmCopyNormals", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void McmCopyNormals(
         IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
         void*                               dstBuffer);     // Destination buffer of Vector3<float> (allocated size must be >= mcmCountNormals(meshBuffer))
 
     // Count the number of indices in the mesh
-    [DllImport("libMCmesher", EntryPoint = "mcmCountIndices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmCountIndices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern uint        McmCountIndices(
         IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
 
     // Copies indices into a buffer
-    [DllImport("libMCmesher", EntryPoint = "mcmCopyIndices", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmCopyIndices", CallingConvention = CallingConvention.Cdecl)]
     protected static extern unsafe void McmCopyIndices(
         IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
         void*                               dstBuffer);     // Destination buffer of unsigned 32-bit integers (allocated size must be >= mcmCountIndices(meshBuffer))

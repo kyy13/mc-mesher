@@ -1,10 +1,10 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
 #ifndef MCM_COMMON_H
 #define MCM_COMMON_H
 
-#include "Vector.h"
+#include "McmVector.h"
 #include <cstdint>
 
 // Generate a Case Index for a cube

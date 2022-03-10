@@ -1,4 +1,4 @@
-# MCmesher
+# mc-mesher
 # Kyle J Burgess
 
 add_executable(

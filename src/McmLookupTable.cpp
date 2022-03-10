@@ -1,7 +1,7 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
-#include "LookupTable.h"
+#include "McmLookupTable.h"
 
 namespace LookupTable
 {

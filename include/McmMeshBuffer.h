@@ -1,8 +1,8 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
-#ifndef MESH_H
-#define MESH_H
+#ifndef MCM_MESH_H
+#define MCM_MESH_H
 
 #include <vector>
 

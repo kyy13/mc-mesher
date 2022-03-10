@@ -2,32 +2,32 @@
 # Kyle J Burgess
 
 add_executable(
-        gm_equal_mesh
+        gm_normalized
         src/main.cpp
 )
 
 target_include_directories(
-        gm_equal_mesh
+        gm_normalized
         PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         "../ext/gradient-noise/include"
 )
 
 target_link_libraries(
-        gm_equal_mesh
+        gm_normalized
         ${PROJECT_NAME}
         -Wl,-allow-multiple-definition
 )
 
 add_test(
         NAME
-        gm_equal_mesh
+        gm_normalized
         COMMAND
-        gm_equal_mesh
+        gm_normalized
 )
 
 set_target_properties(
-        gm_equal_mesh
+        gm_normalized
         PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON

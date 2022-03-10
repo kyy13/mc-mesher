@@ -1,9 +1,9 @@
-// MCmesher
+// mc-mesher
 // Kyle J Burgess
 
-#include "MCmesher.h"
-#include "Mesh.h"
-#include "LookupTable.h"
+#include "mc_mesher.h"
+#include "McmMeshBuffer.h"
+#include "McmLookupTable.h"
 
 #include <stdexcept>
 #include <vector>
