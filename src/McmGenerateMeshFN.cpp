@@ -153,8 +153,6 @@ McmResult mcmGenerateMeshFN(
                 // Step vertices
                 for (uint32_t i = 0; i != vertCount; i += 3)
                 {
-                    Vector3<float> vbuffer[3];
-
                     for (uint32_t j = 0; j != 3; ++j)
                     {
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
@@ -174,38 +172,15 @@ McmResult mcmGenerateMeshFN(
                         float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
 
                         // Lerp vertices
-                        vbuffer[j] = endpoint + k * dEndpoint;
+                        vertices.push_back(endpoint + k * dEndpoint);
                     }
 
-                    // Calculate triangle segments that are too small to render
-                    constexpr float epsilon = 0.0000001f;
+                    const Vector3<float>* vertex = &vertices[vertices.size() - 3];
 
-                    Vector3 d01 = vbuffer[1] - vbuffer[0];
+                    Vector3<float> triFaceNormal = Vector3<float>::cross(
+                        vertex[1] - vertex[0],
+                        vertex[2] - vertex[0]);
 
-                    if (fabsf(d01.x) < epsilon && fabsf(d01.y) < epsilon && fabsf(d01.z) < epsilon)
-                    {
-                        continue;
-                    }
-
-                    Vector3 d12 = vbuffer[2] - vbuffer[1];
-
-                    if (fabsf(d12.x) < epsilon && fabsf(d12.y) < epsilon && fabsf(d12.z) < epsilon)
-                    {
-                        continue;
-                    }
-
-                    Vector3 d02 = vbuffer[2] - vbuffer[0];
-
-                    if (fabsf(d02.x) < epsilon && fabsf(d02.y) < epsilon && fabsf(d02.z) < epsilon)
-                    {
-                        continue;
-                    }
-
-                    vertices.push_back(vbuffer[0]);
-                    vertices.push_back(vbuffer[1]);
-                    vertices.push_back(vbuffer[2]);
-
-                    Vector3<float> triFaceNormal = Vector3<float>::cross(d01, d02);
                     triFaceNormal.normalize();
 
                     normals.push_back(triFaceNormal);

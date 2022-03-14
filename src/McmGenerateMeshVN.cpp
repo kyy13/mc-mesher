@@ -113,15 +113,6 @@ McmResult mcmGenerateMeshVN(
         return McmResult::MCM_OUT_OF_BOUNDS_Z;
     }
 
-    struct VertexCacheEntry
-    {
-        Vector3<float> p;
-        Vector3<float> n;
-        uint32_t i;
-    };
-
-    VertexCacheEntry* vertexCacheEntries[3];
-
     auto& vertices = mesh->vertices;
     auto& normals = mesh->normals;
     auto& indices = mesh->indices;
@@ -287,11 +278,23 @@ McmResult mcmGenerateMeshVN(
 
     int memBoundedOffsets[24];
 
-    std::unordered_map<uint32_t, VertexCacheEntry> zMapA;
-    std::unordered_map<uint32_t, VertexCacheEntry> zMapB;
+    std::unordered_map<uint32_t, uint32_t> zMapA;
+    std::unordered_map<uint32_t, uint32_t> zMapB;
 
     auto* zMapCurrent = &zMapA;
     auto* zMapNext = &zMapB;
+
+    // z clamp until max z
+    {
+        memBoundedOffsets[16] = memOffsets[24];
+        memBoundedOffsets[17] = memOffsets[25];
+        memBoundedOffsets[18] = memOffsets[26];
+        memBoundedOffsets[19] = memOffsets[27];
+        memBoundedOffsets[20] = memOffsets[28];
+        memBoundedOffsets[21] = memOffsets[29];
+        memBoundedOffsets[22] = memOffsets[30];
+        memBoundedOffsets[23] = memOffsets[31];
+    }
 
     for (; voxel != pz1; voxel += pdz)
     {
@@ -307,19 +310,22 @@ McmResult mcmGenerateMeshVN(
         }
 
         // Clamp -Z adjacent memory offsets
-        if (z == 0)
+        if (z < 2)
         {
-            memBoundedOffsets[16] = memOffsets[0];
-            memBoundedOffsets[17] = memOffsets[1];
-            memBoundedOffsets[18] = memOffsets[2];
-            memBoundedOffsets[19] = memOffsets[3];
-        }
-        else
-        {
-            memBoundedOffsets[16] = memOffsets[24];
-            memBoundedOffsets[17] = memOffsets[25];
-            memBoundedOffsets[18] = memOffsets[26];
-            memBoundedOffsets[19] = memOffsets[27];
+            if (z == 0)
+            {
+                memBoundedOffsets[16] = memOffsets[0];
+                memBoundedOffsets[17] = memOffsets[1];
+                memBoundedOffsets[18] = memOffsets[2];
+                memBoundedOffsets[19] = memOffsets[3];
+            }
+            else
+            {
+                memBoundedOffsets[16] = memOffsets[24];
+                memBoundedOffsets[17] = memOffsets[25];
+                memBoundedOffsets[18] = memOffsets[26];
+                memBoundedOffsets[19] = memOffsets[27];
+            }
         }
 
         // Clamp +Z adjacent memory offsets
@@ -330,12 +336,17 @@ McmResult mcmGenerateMeshVN(
             memBoundedOffsets[22] = memOffsets[6];
             memBoundedOffsets[23] = memOffsets[7];
         }
-        else
+
+        // y clamp until max y
         {
-            memBoundedOffsets[20] = memOffsets[28];
-            memBoundedOffsets[21] = memOffsets[29];
-            memBoundedOffsets[22] = memOffsets[30];
-            memBoundedOffsets[23] = memOffsets[31];
+            memBoundedOffsets[12] = memOffsets[20];
+            memBoundedOffsets[13] = memOffsets[21];
+            memBoundedOffsets[14] = memOffsets[22];
+            memBoundedOffsets[15] = memOffsets[23];
+            memBoundedOffsets[8] = memOffsets[16];
+            memBoundedOffsets[9] = memOffsets[17];
+            memBoundedOffsets[10] = memOffsets[18];
+            memBoundedOffsets[11] = memOffsets[19];
         }
 
         for (; voxel != py1; voxel += pdy)
@@ -344,19 +355,22 @@ McmResult mcmGenerateMeshVN(
             cubeOrigin.x = fieldOrigin.x;
 
             // Clamp -Y adjacent memory offsets
-            if (y == 0)
+            if (y < 2)
             {
-                memBoundedOffsets[8] = memOffsets[0];
-                memBoundedOffsets[9] = memOffsets[1];
-                memBoundedOffsets[10] = memOffsets[4];
-                memBoundedOffsets[11] = memOffsets[5];
-            }
-            else
-            {
-                memBoundedOffsets[8] = memOffsets[16];
-                memBoundedOffsets[9] = memOffsets[17];
-                memBoundedOffsets[10] = memOffsets[18];
-                memBoundedOffsets[11] = memOffsets[19];
+                if (y == 0)
+                {
+                    memBoundedOffsets[8] = memOffsets[0];
+                    memBoundedOffsets[9] = memOffsets[1];
+                    memBoundedOffsets[10] = memOffsets[4];
+                    memBoundedOffsets[11] = memOffsets[5];
+                }
+                else
+                {
+                    memBoundedOffsets[8] = memOffsets[16];
+                    memBoundedOffsets[9] = memOffsets[17];
+                    memBoundedOffsets[10] = memOffsets[18];
+                    memBoundedOffsets[11] = memOffsets[19];
+                }
             }
 
             // Clamp +Y adjacent memory offsets
@@ -367,12 +381,17 @@ McmResult mcmGenerateMeshVN(
                 memBoundedOffsets[14] = memOffsets[6];
                 memBoundedOffsets[15] = memOffsets[7];
             }
-            else
+
+            // x offsets until max x
             {
-                memBoundedOffsets[12] = memOffsets[20];
-                memBoundedOffsets[13] = memOffsets[21];
-                memBoundedOffsets[14] = memOffsets[22];
-                memBoundedOffsets[15] = memOffsets[23];
+                memBoundedOffsets[0] = memOffsets[8];
+                memBoundedOffsets[1] = memOffsets[9];
+                memBoundedOffsets[2] = memOffsets[10];
+                memBoundedOffsets[3] = memOffsets[11];
+                memBoundedOffsets[4] = memOffsets[12];
+                memBoundedOffsets[5] = memOffsets[13];
+                memBoundedOffsets[6] = memOffsets[14];
+                memBoundedOffsets[7] = memOffsets[15];
             }
 
             for (; voxel != px1; ++voxel)
@@ -407,7 +426,33 @@ McmResult mcmGenerateMeshVN(
                 uint32_t triangleCount = (geometryCounts & 0x0Fu);
                 uint32_t vertCount = triangleCount * 3;
 
-                bool clampedXBoundedOffsets = false;
+                // Clamp -X adjacent memory offsets
+                if (x < 2)
+                {
+                    if (x == 0)
+                    {
+                        memBoundedOffsets[0] = memOffsets[0];
+                        memBoundedOffsets[1] = memOffsets[2];
+                        memBoundedOffsets[2] = memOffsets[4];
+                        memBoundedOffsets[3] = memOffsets[6];
+                    }
+                    else
+                    {
+                        memBoundedOffsets[0] = memOffsets[8];
+                        memBoundedOffsets[1] = memOffsets[9];
+                        memBoundedOffsets[2] = memOffsets[10];
+                        memBoundedOffsets[3] = memOffsets[11];
+                    }
+                }
+
+                // Clamp +X adjacent memory offsets
+                if (x == maxCubeIndex.x)
+                {
+                    memBoundedOffsets[4] = memOffsets[1];
+                    memBoundedOffsets[5] = memOffsets[3];
+                    memBoundedOffsets[6] = memOffsets[5];
+                    memBoundedOffsets[7] = memOffsets[7];
+                }
 
                 // Setup un-normalized cube normals
                 Vector3<float> cubeNormals[8];
@@ -446,18 +491,14 @@ McmResult mcmGenerateMeshVN(
                             cacheKey = 3u * memPos + (cacheBits & 0b11u);
                         }
 
-                        //uint32_t cacheKey = mcmComputeEdgeCacheKey(voxel - origin, w, wh, vertexData);
-
                         auto it = whichCache->find(cacheKey);
 
                         if (it != whichCache->end())
                         {
-                            vertexCacheEntries[j] = &it->second;
+                            indices.push_back(it->second);
                         }
                         else
                         {
-                            auto& cacheEntry = (*whichCache)[cacheKey];
-
                             const uint32_t endpointIndex[2] =
                                 {
                                     vertexData >> 3u,
@@ -472,46 +513,9 @@ McmResult mcmGenerateMeshVN(
                             float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
 
                             // Lerp vertices
-                            cacheEntry.p = endpoint + k * dEndpoint;
+                            vertices.push_back(endpoint + k * dEndpoint);
 
                             // Lerp vertex normals
-
-                            if (!clampedXBoundedOffsets)
-                            {
-                                // Clamp -X adjacent memory offsets
-                                if (x == 0)
-                                {
-                                    memBoundedOffsets[0] = memOffsets[0];
-                                    memBoundedOffsets[1] = memOffsets[2];
-                                    memBoundedOffsets[2] = memOffsets[4];
-                                    memBoundedOffsets[3] = memOffsets[6];
-                                }
-                                else
-                                {
-                                    memBoundedOffsets[0] = memOffsets[8];
-                                    memBoundedOffsets[1] = memOffsets[9];
-                                    memBoundedOffsets[2] = memOffsets[10];
-                                    memBoundedOffsets[3] = memOffsets[11];
-                                }
-
-                                // Clamp +X adjacent memory offsets
-                                if (x == maxCubeIndex.x)
-                                {
-                                    memBoundedOffsets[4] = memOffsets[1];
-                                    memBoundedOffsets[5] = memOffsets[3];
-                                    memBoundedOffsets[6] = memOffsets[5];
-                                    memBoundedOffsets[7] = memOffsets[7];
-                                }
-                                else
-                                {
-                                    memBoundedOffsets[4] = memOffsets[12];
-                                    memBoundedOffsets[5] = memOffsets[13];
-                                    memBoundedOffsets[6] = memOffsets[14];
-                                    memBoundedOffsets[7] = memOffsets[15];
-                                }
-
-                                clampedXBoundedOffsets = true;
-                            }
 
                             Vector3<float> endpointNormals[2];
 
@@ -531,52 +535,14 @@ McmResult mcmGenerateMeshVN(
 
                             const Vector3<float> dNormal = endpointNormals[1] - endpointNormals[0];
 
-                            cacheEntry.n = endpointNormals[0] + k * dNormal;
-                            cacheEntry.n.normalize();
+                            auto normal = endpointNormals[0] + k * dNormal;
+                            normal.normalize();
+                            normals.push_back(normal);
 
                             // Cache
-                            cacheEntry.i = 0xffffffffu;
-                            vertexCacheEntries[j] = &cacheEntry;
-                        }
-                    }
-
-                    // Calculate triangle segments that are too small to render
-                    constexpr float epsilon = 0.0000001f;
-
-                    Vector3 d01 = vertexCacheEntries[1]->p - vertexCacheEntries[0]->p;
-
-                    if (fabsf(d01.x) < epsilon && fabsf(d01.y) < epsilon && fabsf(d01.z) < epsilon)
-                    {
-                        continue;
-                    }
-
-                    Vector3 d12 = vertexCacheEntries[2]->p - vertexCacheEntries[1]->p;
-
-                    if (fabsf(d12.x) < epsilon && fabsf(d12.y) < epsilon && fabsf(d12.z) < epsilon)
-                    {
-                        continue;
-                    }
-
-                    Vector3 d02 = vertexCacheEntries[2]->p - vertexCacheEntries[0]->p;
-
-                    if (fabsf(d02.x) < epsilon && fabsf(d02.y) < epsilon && fabsf(d02.z) < epsilon)
-                    {
-                        continue;
-                    }
-
-                    for (auto entry : vertexCacheEntries)
-                    {
-                        if (entry->i == 0xffffffffu)
-                        {
-                            vertices.push_back(entry->p);
-                            normals.push_back(entry->n);
+                            (*whichCache)[cacheKey] = vertexCount;
                             indices.push_back(vertexCount);
-                            entry->i = vertexCount;
                             ++vertexCount;
-                        }
-                        else
-                        {
-                            indices.push_back(entry->i);
                         }
                     }
                 }
