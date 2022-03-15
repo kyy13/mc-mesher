@@ -285,16 +285,14 @@ McmResult mcmGenerateMeshVN(
     auto* zMapNext = &zMapB;
 
     // z clamp until max z
-    {
-        memBoundedOffsets[16] = memOffsets[24];
-        memBoundedOffsets[17] = memOffsets[25];
-        memBoundedOffsets[18] = memOffsets[26];
-        memBoundedOffsets[19] = memOffsets[27];
-        memBoundedOffsets[20] = memOffsets[28];
-        memBoundedOffsets[21] = memOffsets[29];
-        memBoundedOffsets[22] = memOffsets[30];
-        memBoundedOffsets[23] = memOffsets[31];
-    }
+    memBoundedOffsets[16] = memOffsets[24];
+    memBoundedOffsets[17] = memOffsets[25];
+    memBoundedOffsets[18] = memOffsets[26];
+    memBoundedOffsets[19] = memOffsets[27];
+    memBoundedOffsets[20] = memOffsets[28];
+    memBoundedOffsets[21] = memOffsets[29];
+    memBoundedOffsets[22] = memOffsets[30];
+    memBoundedOffsets[23] = memOffsets[31];
 
     for (; voxel != pz1; voxel += pdz)
     {
@@ -338,16 +336,14 @@ McmResult mcmGenerateMeshVN(
         }
 
         // y clamp until max y
-        {
-            memBoundedOffsets[12] = memOffsets[20];
-            memBoundedOffsets[13] = memOffsets[21];
-            memBoundedOffsets[14] = memOffsets[22];
-            memBoundedOffsets[15] = memOffsets[23];
-            memBoundedOffsets[8] = memOffsets[16];
-            memBoundedOffsets[9] = memOffsets[17];
-            memBoundedOffsets[10] = memOffsets[18];
-            memBoundedOffsets[11] = memOffsets[19];
-        }
+        memBoundedOffsets[8] = memOffsets[16];
+        memBoundedOffsets[9] = memOffsets[17];
+        memBoundedOffsets[10] = memOffsets[18];
+        memBoundedOffsets[11] = memOffsets[19];
+        memBoundedOffsets[12] = memOffsets[20];
+        memBoundedOffsets[13] = memOffsets[21];
+        memBoundedOffsets[14] = memOffsets[22];
+        memBoundedOffsets[15] = memOffsets[23];
 
         for (; voxel != py1; voxel += pdy)
         {
@@ -383,16 +379,14 @@ McmResult mcmGenerateMeshVN(
             }
 
             // x offsets until max x
-            {
-                memBoundedOffsets[0] = memOffsets[8];
-                memBoundedOffsets[1] = memOffsets[9];
-                memBoundedOffsets[2] = memOffsets[10];
-                memBoundedOffsets[3] = memOffsets[11];
-                memBoundedOffsets[4] = memOffsets[12];
-                memBoundedOffsets[5] = memOffsets[13];
-                memBoundedOffsets[6] = memOffsets[14];
-                memBoundedOffsets[7] = memOffsets[15];
-            }
+            memBoundedOffsets[0] = memOffsets[8];
+            memBoundedOffsets[1] = memOffsets[9];
+            memBoundedOffsets[2] = memOffsets[10];
+            memBoundedOffsets[3] = memOffsets[11];
+            memBoundedOffsets[4] = memOffsets[12];
+            memBoundedOffsets[5] = memOffsets[13];
+            memBoundedOffsets[6] = memOffsets[14];
+            memBoundedOffsets[7] = memOffsets[15];
 
             for (; voxel != px1; ++voxel)
             {
