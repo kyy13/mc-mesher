@@ -21,6 +21,7 @@ target_include_directories(
     PUBLIC
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/godot_cpp/core
+    ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/godot_cpp/classes
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/godot-headers
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/godot_cpp
 )
