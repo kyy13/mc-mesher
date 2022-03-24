@@ -13,6 +13,7 @@ add_library(
 	${PROJECT_NAME}
 	SHARED
 	src/mc_mesher_gd.cpp
+    ${PROJECT_SOURCE_DIR}/build/godot_cpp/src
 )
 
 # includes
@@ -20,14 +21,11 @@ target_include_directories(
 	${PROJECT_NAME}
     PUBLIC
     ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/godot_cpp/core
-    ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/godot_cpp/classes
+    ${PROJECT_SOURCE_DIR}/build/godot_cpp/include/gen
+    ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include
+    ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/core
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/godot-headers
-    ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/godot_cpp
-)
-
-add_subdirectory(
-	ext/godot-cpp
+    # ${PROJECT_SOURCE_DIR}/ext/godot-cpp/godot-headers/gdnative
 )
 
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -65,9 +63,12 @@ set_target_properties(
 )
 
 # link libraries
+
 target_link_libraries(
     ${PROJECT_NAME}
     PRIVATE
     mcmesher
-    godot-cpp
+    ${PROJECT_SOURCE_DIR}/ext/godot-cpp/bin/libgodot-cpp.windows.release.64.a
+    -static-libgcc
+    -static-libstdc++
 )
