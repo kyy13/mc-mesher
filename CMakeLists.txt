@@ -4,12 +4,12 @@
 cmake_minimum_required(VERSION 3.7)
 project(mcmesher)
 
-option(BUILD_TESTS "build tests?" ON)
+option(MCM_BUILD_STATIC "build static?" OFF)
+option(MCM_BUILD_TESTS "build tests?" ON)
 
-# library
-add_library(
-    ${PROJECT_NAME}
-    SHARED
+# sources
+set(
+    MCM_SOURCES
     src/mc_mesher.cpp
     src/McmGenerateMeshFN.cpp
     src/McmGenerateMeshVN.cpp
@@ -17,6 +17,21 @@ add_library(
     src/McmLookupTable.cpp
     src/McmCommon.cpp
 )
+
+# library
+IF (MCM_BUILD_STATIC)
+    add_library(
+        ${PROJECT_NAME}
+        STATIC
+        ${MCM_SOURCES}
+    )
+ELSE()
+    add_library(
+        ${PROJECT_NAME}
+        SHARED
+        ${MCM_SOURCES}
+    )
+ENDIF()
 
 # includes
 target_include_directories(
@@ -56,7 +71,7 @@ target_link_libraries(
     -static-libstdc++
 )
 
-IF(BUILD_TESTS)
+IF(MCM_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 ENDIF()
