@@ -4,14 +4,15 @@
 cmake_minimum_required(VERSION 3.7)
 project(mcmesher-gd)
 
-option(MCM_BUILD_STATIC "" ON)
-option(MCM_BUILD_TESTS "" OFF)
+set(MCM_BUILD_STATIC ON CACHE BOOL "")
+set(MCM_BUILD_TESTS OFF CACHE BOOL "")
+set(MCM_STATIC_GCC OFF CACHE BOOL "")
 
 # library
 add_library(
 	${PROJECT_NAME}
 	SHARED
-	src/mc_mesher.cpp
+	src/mc_mesher_gd.cpp
 )
 
 # includes

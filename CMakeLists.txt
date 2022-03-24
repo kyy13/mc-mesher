@@ -6,6 +6,7 @@ project(mcmesher)
 
 option(MCM_BUILD_STATIC "build static?" OFF)
 option(MCM_BUILD_TESTS "build tests?" ON)
+option(MCM_STATIC_GCC "static link gcc?" ON)
 
 # sources
 set(
@@ -65,11 +66,13 @@ set_target_properties(
 )
 
 # link libraries
-target_link_libraries(
-    ${PROJECT_NAME}
-    -static-libgcc
-    -static-libstdc++
-)
+IF(MCM_STATIC_GCC)
+    target_link_libraries(
+        ${PROJECT_NAME}
+        -static-libgcc
+        -static-libstdc++
+    )
+ENDIF()
 
 IF(MCM_BUILD_TESTS)
     enable_testing()
