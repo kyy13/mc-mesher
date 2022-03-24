@@ -4,8 +4,8 @@
 cmake_minimum_required(VERSION 3.7)
 project(mcmesher-gd)
 
-set(MCM_BUILD_STATIC ON)
-set(MCM_BUILD_TESTS OFF)
+option(MCM_BUILD_STATIC "" ON)
+option(MCM_BUILD_TESTS "" OFF)
 
 # library
 add_library(
