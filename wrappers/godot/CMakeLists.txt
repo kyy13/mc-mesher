@@ -25,7 +25,11 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/include/core
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/godot-headers
-    # ${PROJECT_SOURCE_DIR}/ext/godot-cpp/godot-headers/gdnative
+)
+
+add_subdirectory(
+    ${PROJECT_SOURCE_DIR}/../../
+    ${PROJECT_BINARY_DIR}/mcmesher
 )
 
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -35,22 +39,12 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
         -Wall
         -g
     )
-
-	add_subdirectory(
-		${PROJECT_SOURCE_DIR}/../../
-		${PROJECT_BINARY_DIR}/mcmesher/build/Debug
-	)
 ELSE()
     target_compile_options(
         ${PROJECT_NAME}
         PRIVATE
         -O3
     )
-
-    add_subdirectory(
-		${PROJECT_SOURCE_DIR}/../../
-		${PROJECT_BINARY_DIR}/mcmesher/build/Release
-	)
 ENDIF()
 
 # c++ version
@@ -71,4 +65,16 @@ target_link_libraries(
     ${PROJECT_SOURCE_DIR}/ext/godot-cpp/bin/libgodot-cpp.windows.release.64.a
     -static-libgcc
     -static-libstdc++
+    -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
 )
+
+# copy dll to bin
+
+IF(WIN32)
+    add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            "${PROJECT_BINARY_DIR}/libmcmesher-gd.dll"
+            "${PROJECT_SOURCE_DIR}/bin/win64"
+    )
+ENDIF()
