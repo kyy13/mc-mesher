@@ -14,6 +14,9 @@ void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *o)
     godot::Godot::gdnative_terminate(o);
 }
 
+void GDN_EXPORT godot_gdnative_singleton()
+{}
+
 void GDN_EXPORT godot_nativescript_init(void *handle)
 {
     godot::Godot::nativescript_init(handle);
@@ -114,7 +117,12 @@ namespace godot
 
         indices.resize(indexCount);
 
-        mcmCopyIndices(m_buffer, reinterpret_cast<uint32_t*>(indices.write().ptr()));
+        auto* indexPtr = reinterpret_cast<uint32_t*>(indices.write().ptr());
+
+        mcmCopyIndices(m_buffer, indexPtr);
+
+        // Flip indices
+        flipIndices(indexPtr, indexCount);
 
         arrays[ArrayMesh::ARRAY_INDEX] = indices;
 
@@ -125,10 +133,64 @@ namespace godot
         return result;
     }
 
+    McmResult McmMeshBuffer::rayIntersectVirtualMesh(
+        PoolRealArray                 data,           // 3D field of scalar floating-point values as a contiguous array
+        PoolIntArray                  dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
+        float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
+        PoolRealArray                 rayPos,         // Starting point of the ray
+        PoolRealArray                 rayDir,         // Direction of the ray (does not need to be normalized)
+        PoolRealArray                 pIntersect)     // The point of intersection if an intersection occurred
+    {
+        const ::Vector3<uint32_t> _dataSize =
+            {
+                static_cast<uint32_t>(dataSize[0]),
+                static_cast<uint32_t>(dataSize[1]),
+                static_cast<uint32_t>(dataSize[2]),
+            };
+
+        const ::Vector3<float> _rayPos =
+            {
+                static_cast<float>(rayPos[0]),
+                static_cast<float>(rayPos[1]),
+                static_cast<float>(rayPos[2]),
+            };
+
+        const ::Vector3<float> _rayDir =
+            {
+                static_cast<float>(rayDir[0]),
+                static_cast<float>(rayDir[1]),
+                static_cast<float>(rayDir[2]),
+            };
+
+        ::Vector3<float> _pIntersect;
+
+        McmResult result = mcmRayIntersectVirtualMesh(
+            reinterpret_cast<const float*>(data.read().ptr()),
+            _dataSize,
+            isoLevel,
+            _rayPos,
+            _rayDir,
+            _pIntersect);
+
+        if (result != MCM_SUCCESS)
+        {
+            return result;
+        }
+
+        pIntersect.resize(3);
+
+        pIntersect.write()[0] = _pIntersect.x;
+        pIntersect.write()[1] = _pIntersect.y;
+        pIntersect.write()[2] = _pIntersect.z;
+
+        return MCM_SUCCESS;
+    }
+
     void McmMeshBuffer::_register_methods()
     {
         register_method("_process", &McmMeshBuffer::_process);
         register_method("generateMesh", &McmMeshBuffer::generateMesh);
+        register_method("rayIntersectVirtualMesh", &McmMeshBuffer::rayIntersectVirtualMesh);
     }
 
     void McmMeshBuffer::_init()
@@ -136,4 +198,16 @@ namespace godot
 
     void McmMeshBuffer::_process(float delta)
     {}
+
+    void McmMeshBuffer::flipIndices(uint32_t* ptr, uint32_t n)
+    {
+        uint32_t* end = ptr + n;
+
+        for (; ptr < end; ptr += 3)
+        {
+            uint32_t tmp = ptr[0];
+            ptr[0] = ptr[1];
+            ptr[1] = tmp;
+        }
+    }
 }
