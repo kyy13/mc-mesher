@@ -71,6 +71,7 @@ IF(MCM_STATIC_GCC)
         ${PROJECT_NAME}
         -static-libgcc
         -static-libstdc++
+        -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
     )
 ENDIF()
 
