@@ -4,6 +4,8 @@
 #include "mc_mesher.h"
 #include "McmMeshBuffer.h"
 #include "McmLookupTable.h"
+#include "McmGenerateMeshFN.h"
+#include "McmGenerateMeshVN.h"
 
 #include <stdexcept>
 #include <vector>
@@ -66,4 +68,9 @@ const uint32_t* mcmGetIndices(const McmMeshBuffer* mesh)
 void mcmCopyIndices(const McmMeshBuffer* mesh, uint32_t* dst)
 {
     memcpy(dst, mesh->indices.data(), mesh->indices.size() * sizeof(uint32_t));
+}
+
+McmResult mcmGenerateMesh(McmMeshBuffer* meshBuffer, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel, McmFlags flags)
+{
+
 }

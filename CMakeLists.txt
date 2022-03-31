@@ -12,8 +12,6 @@ option(MCM_STATIC_GCC "static link gcc?" ON)
 set(
     MCM_SOURCES
     src/mc_mesher.cpp
-    src/McmGenerateMeshFN.cpp
-    src/McmGenerateMeshVN.cpp
     src/McmRayIntersectVirtualMesh.cpp
     src/McmLookupTable.cpp
     src/McmCommon.cpp

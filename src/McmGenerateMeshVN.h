@@ -1,6 +1,9 @@
 // mc-mesher
 // Kyle J Burgess
 
+#ifndef MCM_GENERATE_MESH_VN
+#define MCM_GENERATE_MESH_VN
+
 #include "mc_mesher.h"
 #include "McmMeshBuffer.h"
 #include "McmCommon.h"
@@ -8,72 +11,73 @@
 
 #include <unordered_map>
 
-void generateCubeNormal(const float* voxel, const int memBoundedOffsets[24], const float corners[8], uint32_t whichCorner, Vector3<float>* normals)
+template<class T>
+void generateCubeNormal(const T* voxel, const int memBoundedOffsets[24], const T corners[8], uint32_t whichCorner, Vector3<float>* normals)
 {
     switch (whichCorner)
     {
         case 0:
             normals[0] =
                 {
-                    .x = *(voxel + memBoundedOffsets[0]) - corners[1],
-                    .y = *(voxel + memBoundedOffsets[8]) - corners[2],
-                    .z = *(voxel + memBoundedOffsets[16]) - corners[4],
+                    .x = static_cast<float>(*(voxel + memBoundedOffsets[0])) - static_cast<float>(corners[1]),
+                    .y = static_cast<float>(*(voxel + memBoundedOffsets[8])) - static_cast<float>(corners[2]),
+                    .z = static_cast<float>(*(voxel + memBoundedOffsets[16])) - static_cast<float>(corners[4]),
                 };
             break;
         case 1:
             normals[1] =
                 {
-                    .x = corners[0] - *(voxel + memBoundedOffsets[4]),
-                    .y = *(voxel + memBoundedOffsets[9]) - corners[3],
-                    .z = *(voxel + memBoundedOffsets[17]) - corners[5],
+                    .x = static_cast<float>(corners[0]) - static_cast<float>(*(voxel + memBoundedOffsets[4])),
+                    .y = static_cast<float>(*(voxel + memBoundedOffsets[9])) - static_cast<float>(corners[3]),
+                    .z = static_cast<float>(*(voxel + memBoundedOffsets[17])) - static_cast<float>(corners[5]),
                 };
             break;
         case 2:
             normals[2] =
                 {
-                    .x = *(voxel + memBoundedOffsets[1]) - corners[3],
-                    .y = corners[0] - *(voxel + memBoundedOffsets[12]),
-                    .z = *(voxel + memBoundedOffsets[18]) - corners[6],
+                    .x = static_cast<float>(*(voxel + memBoundedOffsets[1])) - static_cast<float>(corners[3]),
+                    .y = static_cast<float>(corners[0]) - static_cast<float>(*(voxel + memBoundedOffsets[12])),
+                    .z = static_cast<float>(*(voxel + memBoundedOffsets[18])) - static_cast<float>(corners[6]),
                 };
             break;
         case 3:
             normals[3] =
                 {
-                    .x = corners[2] - *(voxel + memBoundedOffsets[5]),
-                    .y = corners[1] - *(voxel + memBoundedOffsets[13]),
-                    .z = *(voxel + memBoundedOffsets[19]) - corners[7],
+                    .x = static_cast<float>(corners[2]) - static_cast<float>(*(voxel + memBoundedOffsets[5])),
+                    .y = static_cast<float>(corners[1]) - static_cast<float>(*(voxel + memBoundedOffsets[13])),
+                    .z = static_cast<float>(*(voxel + memBoundedOffsets[19])) - static_cast<float>(corners[7]),
                 };
             break;
         case 4:
             normals[4] =
                 {
-                    .x = *(voxel + memBoundedOffsets[2]) - corners[5],
-                    .y = *(voxel + memBoundedOffsets[10]) - corners[6],
-                    .z = corners[0] - *(voxel + memBoundedOffsets[20]),
+                    .x = static_cast<float>(*(voxel + memBoundedOffsets[2])) - static_cast<float>(corners[5]),
+                    .y = static_cast<float>(*(voxel + memBoundedOffsets[10])) - static_cast<float>(corners[6]),
+                    .z = static_cast<float>(corners[0]) - static_cast<float>(*(voxel + memBoundedOffsets[20])),
                 };
             break;
         case 5:
             normals[5] =
                 {
-                    .x = corners[4] - *(voxel + memBoundedOffsets[6]),
-                    .y = *(voxel + memBoundedOffsets[11]) - corners[7],
-                    .z = corners[1] - *(voxel + memBoundedOffsets[21]),
+                    .x = static_cast<float>(corners[4]) - static_cast<float>(*(voxel + memBoundedOffsets[6])),
+                    .y = static_cast<float>(*(voxel + memBoundedOffsets[11])) - static_cast<float>(corners[7]),
+                    .z = static_cast<float>(corners[1]) - static_cast<float>(*(voxel + memBoundedOffsets[21])),
                 };
             break;
         case 6:
             normals[6] =
                 {
-                    .x = *(voxel + memBoundedOffsets[3]) - corners[7],
-                    .y = corners[4] - *(voxel + memBoundedOffsets[14]),
-                    .z = corners[2] - *(voxel + memBoundedOffsets[22]),
+                    .x = static_cast<float>(*(voxel + memBoundedOffsets[3])) - static_cast<float>(corners[7]),
+                    .y = static_cast<float>(corners[4]) - static_cast<float>(*(voxel + memBoundedOffsets[14])),
+                    .z = static_cast<float>(corners[2]) - static_cast<float>(*(voxel + memBoundedOffsets[22])),
                 };
             break;
         case 7:
             normals[7] =
                 {
-                    .x = corners[6] - *(voxel + memBoundedOffsets[7]),
-                    .y = corners[5] - *(voxel + memBoundedOffsets[15]),
-                    .z = corners[3] - *(voxel + memBoundedOffsets[23]),
+                    .x = static_cast<float>(corners[6]) - static_cast<float>(*(voxel + memBoundedOffsets[7])),
+                    .y = static_cast<float>(corners[5]) - static_cast<float>(*(voxel + memBoundedOffsets[15])),
+                    .z = static_cast<float>(corners[3]) - static_cast<float>(*(voxel + memBoundedOffsets[23])),
                 };
             break;
         default:
@@ -83,13 +87,14 @@ void generateCubeNormal(const float* voxel, const int memBoundedOffsets[24], con
     normals[whichCorner].normalize();
 }
 
+template<class T, bool WINDING_RHCS_CW, bool EDGE_LERP>
 McmResult mcmGenerateMeshVN(
     McmMeshBuffer* mesh,
-    const float* data,
+    const T* data,
     Vector3<uint32_t> dataSize,
     Vector3<uint32_t> meshOrigin,
     Vector3<uint32_t> meshSize,
-    float isoLevel)
+    T isoLevel)
 {
     if (mesh == nullptr)
     {
@@ -113,6 +118,8 @@ McmResult mcmGenerateMeshVN(
         return McmResult::MCM_OUT_OF_BOUNDS_Z;
     }
 
+    float fIsoLevel = static_cast<float>(isoLevel);
+
     auto& vertices = mesh->vertices;
     auto& normals = mesh->normals;
     auto& indices = mesh->indices;
@@ -126,12 +133,12 @@ McmResult mcmGenerateMeshVN(
     const uint32_t w = dataSize.x;
     const uint32_t wh = dataSize.x * dataSize.y;
 
-    const float* origin = &data[meshOrigin.z * wh + meshOrigin.y * w + meshOrigin.x];
-    const float* voxel = origin;
+    const T* origin = &data[meshOrigin.z * wh + meshOrigin.y * w + meshOrigin.x];
+    const T* voxel = origin;
 
-    const float* px1 = &voxel[meshSize.x];
-    const float* py1 = &voxel[meshSize.y * w];
-    const float* pz1 = &voxel[meshSize.z * wh];
+    const T* px1 = &voxel[meshSize.x];
+    const T* py1 = &voxel[meshSize.y * w];
+    const T* pz1 = &voxel[meshSize.z * wh];
 
     const uint32_t pdy = w - meshSize.x; // wrap to next y
     const uint32_t pdz = (dataSize.y - meshSize.y) * w; // wrap to next z
@@ -390,7 +397,7 @@ McmResult mcmGenerateMeshVN(
 
             for (; voxel != px1; ++voxel)
             {
-                const float corner[8] =
+                const T corner[8] =
                     {
                         *(voxel),
                         *(voxel + 1),
@@ -504,7 +511,17 @@ McmResult mcmGenerateMeshVN(
                             const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - d0;
 
                             // Lerp factor between endpoints
-                            float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
+                            float k;
+                            if constexpr (EDGE_LERP)
+                            {
+                                float corner0 = static_cast<float>(corner[endpointIndex[0]]);
+                                float corner1 = static_cast<float>(corner[endpointIndex[1]]);
+                                k = (fIsoLevel - corner0) / (corner1 - corner0);
+                            }
+                            else
+                            {
+                                k = 0.5f;
+                            }
 
                             // Lerp vertices
                             vertices.push_back(endpoint + k * dEndpoint);
@@ -555,3 +572,5 @@ McmResult mcmGenerateMeshVN(
 
     return McmResult::MCM_SUCCESS;
 }
+
+#endif

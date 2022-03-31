@@ -6,22 +6,6 @@
 
 #include <cstring>
 
-uint8_t mcmComputeCaseIndex(const float corners[8], float isoLevel)
-{
-    uint8_t caseIndex = 0u;
-
-    if (corners[0] >= isoLevel) caseIndex |= 0x01u;
-    if (corners[1] >= isoLevel) caseIndex |= 0x02u;
-    if (corners[2] >= isoLevel) caseIndex |= 0x04u;
-    if (corners[3] >= isoLevel) caseIndex |= 0x08u;
-    if (corners[4] >= isoLevel) caseIndex |= 0x10u;
-    if (corners[5] >= isoLevel) caseIndex |= 0x20u;
-    if (corners[6] >= isoLevel) caseIndex |= 0x40u;
-    if (corners[7] >= isoLevel) caseIndex |= 0x80u;
-
-    return caseIndex;
-}
-
 uint32_t mcmComputeCaseGeometry(const float corners[8], float isoLevel, Vector3<float> vertices[12])
 {
     uint8_t caseIndex = mcmComputeCaseIndex(corners, isoLevel);

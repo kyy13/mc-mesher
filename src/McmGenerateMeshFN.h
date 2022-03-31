@@ -1,6 +1,9 @@
 // mc-mesher
 // Kyle J Burgess
 
+#ifndef MCM_GENERATE_MESH_FN
+#define MCM_GENERATE_MESH_FN
+
 #include "mc_mesher.h"
 #include "McmMeshBuffer.h"
 #include "McmCommon.h"
@@ -210,3 +213,5 @@ McmResult mcmGenerateMeshFN(
 
     return McmResult::MCM_SUCCESS;
 }
+
+#endif
