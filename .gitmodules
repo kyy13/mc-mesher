@@ -1,3 +1,0 @@
-[submodule "wrappers/godot/ext/godot-cpp"]
-	path = wrappers/godot/ext/godot-cpp
-	url = https://github.com/godotengine/godot-cpp
