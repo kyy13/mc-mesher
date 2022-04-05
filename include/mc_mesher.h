@@ -46,7 +46,7 @@ extern "C"
     void                  __cdecl mcmDeleteMeshBuffer(
         McmMeshBuffer*                meshBuffer);    // Handle to a valid mcmMeshBuffer object
 
-    // Generate a marching cubes mesh, and store the results in an McmMeshBuffer
+    // Generate a marching cubes mesh from a scalar float32 field, and store the results in an McmMeshBuffer
     McmResult             __cdecl mcmGenerateMesh(
         McmMeshBuffer*                meshBuffer,     // Handle to a valid mcmMeshBuffer object
         const float*                  data,           // 3D field of scalar floating-point values as a contiguous array
@@ -54,6 +54,16 @@ extern "C"
         Vector3<uint32_t>             meshOrigin,     // Origin of the mesh to generate (in cubes) within the 3D field
         Vector3<uint32_t>             meshSize,       // Size of the mesh to generate (in cubes) within the 3D field
         float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
+        McmFlags                      flags);         // Mesh generation flags
+
+    // Generate a marching cubes mesh from a scalar byte field, and store the results in an McmMeshBuffer
+    McmResult             __cdecl mcmGenerateMesh_U8(
+        McmMeshBuffer*                meshBuffer,     // Handle to a valid mcmMeshBuffer object
+        const uint8_t*                data,           // 3D field of scalar floating-point values as a contiguous array
+        Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
+        Vector3<uint32_t>             meshOrigin,     // Origin of the mesh to generate (in cubes) within the 3D field
+        Vector3<uint32_t>             meshSize,       // Size of the mesh to generate (in cubes) within the 3D field
+        uint8_t                       isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         McmFlags                      flags);         // Mesh generation flags
 
     // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)

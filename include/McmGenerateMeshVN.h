@@ -467,8 +467,19 @@ McmResult mcmGenerateMeshVN(
                 // Step vertices
                 for (uint32_t i = 0; i != vertCount; i += 3)
                 {
-                    for (uint32_t j = 0; j != 3; ++j)
+                    constexpr uint32_t j0 = WINDING_RHCS_CW ? 0 : 3;
+
+                    uint32_t j = j0;
+
+                    // j = [0, 2] CW
+                    // j = [2, 0] CCW
+                    while (true)
                     {
+                        if constexpr (!WINDING_RHCS_CW)
+                        {
+                            --j;
+                        }
+
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
@@ -554,6 +565,22 @@ McmResult mcmGenerateMeshVN(
                             (*whichCache)[cacheKey] = vertexCount;
                             indices.push_back(vertexCount);
                             ++vertexCount;
+                        }
+
+                        if constexpr (WINDING_RHCS_CW)
+                        {
+                            if (j == 2)
+                            {
+                                break;
+                            }
+                            ++j;
+                        }
+                        else
+                        {
+                            if (j == 0)
+                            {
+                                break;
+                            }
                         }
                     }
                 }

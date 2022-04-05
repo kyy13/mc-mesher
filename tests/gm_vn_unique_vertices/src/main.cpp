@@ -79,7 +79,7 @@ int main()
 
     auto mesh = mcmCreateMeshBuffer();
 
-    if (mcmGenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f) != MCM_SUCCESS)
+    if (mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f, MCM_VERTEX_NORMALS) != MCM_SUCCESS)
     {
         return -1;
     }

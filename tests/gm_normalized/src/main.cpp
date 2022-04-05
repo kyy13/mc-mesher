@@ -101,7 +101,7 @@ int main()
 
     // Generate Mesh with face normals
 
-    auto result = mcmGenerateMeshFN(meshA, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f);
+    auto result = mcmGenerateMesh(meshA, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f, MCM_FACE_NORMALS);
 
     if (result != McmResult::MCM_SUCCESS)
     {
@@ -110,7 +110,7 @@ int main()
 
     // Generate mesh with vertex normals
 
-    result = mcmGenerateMeshVN(meshB, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f);
+    result = mcmGenerateMesh(meshB, scalarField.data(), dataSize, meshOrigin, meshSize, 0.0f, MCM_VERTEX_NORMALS);
 
     if (result != McmResult::MCM_SUCCESS)
     {

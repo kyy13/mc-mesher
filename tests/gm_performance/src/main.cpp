@@ -38,8 +38,7 @@ float GetValue(size_t x, size_t y, size_t z)
     }
 }
 
-template<auto fn>
-float TestGenerateMesh(McmMeshBuffer* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize)
+float TestGenerateMesh(McmMeshBuffer* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, McmFlag flags)
 {
     constexpr float twoOver256 = 2.0f / 256.0f;
     constexpr float secPerClock = 1.0f / static_cast<float>(CLOCKS_PER_SEC);
@@ -53,7 +52,7 @@ float TestGenerateMesh(McmMeshBuffer* mesh, const float* data, Vector3<uint32_t>
         float isoLevel = -1.0f + twoOver256 * static_cast<float>(i);
 
         t = clock();
-        result = fn(mesh, data, dataSize, meshOrigin, meshSize, isoLevel);
+        result = mcmGenerateMesh(mesh, data, dataSize, meshOrigin, meshSize, isoLevel, flags);
         dt += (clock() - t);
 
         if (result != McmResult::MCM_SUCCESS)
@@ -109,7 +108,7 @@ int main()
     auto mesh = mcmCreateMeshBuffer();
 
     std::cout << "mcmGenerateMeshVN 256^3 = ";
-    auto t = TestGenerateMesh<mcmGenerateMeshVN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
+    auto t = TestGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, MCM_VERTEX_NORMALS);
     std::cout << t << "s (avg = ";
     std::cout << (t / 256.0f) << "s)\n";
 
@@ -117,7 +116,7 @@ int main()
     mesh = mcmCreateMeshBuffer();
 
     std::cout << "mcmGenerateMeshFN 256^3 => ";
-    t = TestGenerateMesh<mcmGenerateMeshFN>(mesh, scalarField.data(), dataSize, meshOrigin, meshSize);
+    t = TestGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, MCM_FACE_NORMALS);
     std::cout << t << "s (avg = ";
     std::cout << (t / 256.0f) << "s)\n";
 

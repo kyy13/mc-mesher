@@ -203,7 +203,7 @@ int main()
 
     auto result = TestBoundaries(mesh, dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
     {
-        return mcmGenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+        return mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_FACE_NORMALS);
     });
 
     if (result != 0)
@@ -215,7 +215,7 @@ int main()
 
     result = TestBoundaries(mesh, dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
     {
-        return mcmGenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+        return mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_VERTEX_NORMALS);
     });
 
     if (result != 0)
@@ -239,12 +239,12 @@ int main()
             .z = dataSize.z - 1,
         };
 
-    if (mcmGenerateMeshVN(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f) != McmResult::MCM_MESH_BUFFER_IS_NULL)
+    if (mcmGenerateMesh(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_FACE_NORMALS) != McmResult::MCM_MESH_BUFFER_IS_NULL)
     {
         return -1;
     }
 
-    if (mcmGenerateMeshFN(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f) != McmResult::MCM_MESH_BUFFER_IS_NULL)
+    if (mcmGenerateMesh(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_VERTEX_NORMALS) != McmResult::MCM_MESH_BUFFER_IS_NULL)
     {
         return -1;
     }

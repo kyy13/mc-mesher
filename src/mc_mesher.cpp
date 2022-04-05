@@ -72,5 +72,140 @@ void mcmCopyIndices(const McmMeshBuffer* mesh, uint32_t* dst)
 
 McmResult mcmGenerateMesh(McmMeshBuffer* meshBuffer, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel, McmFlags flags)
 {
+    // Pick and generate template functions from flags
 
+    if ((flags & MCM_FACE_NORMALS) == 0)
+    {
+        // Vertex Normals
+        if ((flags & MCM_EDGE_CENTER) == 0)
+        {
+            // Edge Lerp
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshVN<float, true, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshVN<float, false, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+        else
+        {
+            // Edge Center
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshVN<float, true, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshVN<float, false, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+    }
+    else
+    {
+        // Face Normals
+        if ((flags & MCM_EDGE_CENTER) == 0)
+        {
+            // Edge Lerp
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshFN<float, true, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshFN<float, false, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+        else
+        {
+            // Edge Center
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshFN<float, true, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshFN<float, false, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+    }
+}
+
+McmResult mcmGenerateMesh_U8(McmMeshBuffer* meshBuffer, const uint8_t* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, uint8_t isoLevel, McmFlags flags)
+{
+    // Pick and generate template functions from flags
+
+    if ((flags & MCM_FACE_NORMALS) == 0)
+    {
+        // Vertex Normals
+        if ((flags & MCM_EDGE_CENTER) == 0)
+        {
+            // Edge Lerp
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshVN<uint8_t, true, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshVN<uint8_t, false, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+        else
+        {
+            // Edge Center
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshVN<uint8_t, true, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshVN<uint8_t, false, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+    }
+    else
+    {
+        // Face Normals
+        if ((flags & MCM_EDGE_CENTER) == 0)
+        {
+            // Edge Lerp
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshFN<uint8_t, true, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshFN<uint8_t, false, true>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+        else
+        {
+            // Edge Center
+            if ((flags & MCM_WINDING_RHCS_CCW) == 0)
+            {
+                // Right-Handed CW
+                return mcmGenerateMeshFN<uint8_t, true, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+            else
+            {
+                // Right-Handed CCW
+                return mcmGenerateMeshFN<uint8_t, false, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
+            }
+        }
+    }
 }

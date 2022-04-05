@@ -11,13 +11,14 @@
 
 #include <unordered_map>
 
+template<class T, bool WINDING_RHCS_CW, bool EDGE_LERP>
 McmResult mcmGenerateMeshFN(
     McmMeshBuffer* mesh,
-    const float* data,
+    const T* data,
     Vector3<uint32_t> dataSize,
     Vector3<uint32_t> meshOrigin,
     Vector3<uint32_t> meshSize,
-    float isoLevel)
+    T isoLevel)
 {
     if (mesh == nullptr)
     {
@@ -41,7 +42,7 @@ McmResult mcmGenerateMeshFN(
         return McmResult::MCM_OUT_OF_BOUNDS_Z;
     }
 
-    float corner[8];
+    T corner[8];
 
     auto& vertices = mesh->vertices;
     auto& normals = mesh->normals;
@@ -54,12 +55,12 @@ McmResult mcmGenerateMeshFN(
     const uint32_t w = dataSize.x;
     const uint32_t wh = dataSize.x * dataSize.y;
 
-    const float* origin = &data[meshOrigin.z * wh + meshOrigin.y * w + meshOrigin.x];
-    const float* voxel = origin;
+    const T* origin = &data[meshOrigin.z * wh + meshOrigin.y * w + meshOrigin.x];
+    const T* voxel = origin;
 
-    const float* px1 = &voxel[meshSize.x];
-    const float* py1 = &voxel[meshSize.y * w];
-    const float* pz1 = &voxel[meshSize.z * wh];
+    const T* px1 = &voxel[meshSize.x];
+    const T* py1 = &voxel[meshSize.y * w];
+    const T* pz1 = &voxel[meshSize.z * wh];
 
     const uint32_t pdy = w - meshSize.x; // wrap to next y
     const uint32_t pdz = (dataSize.y - meshSize.y) * w; // wrap to next z
@@ -156,8 +157,19 @@ McmResult mcmGenerateMeshFN(
                 // Step vertices
                 for (uint32_t i = 0; i != vertCount; i += 3)
                 {
-                    for (uint32_t j = 0; j != 3; ++j)
+                    constexpr uint32_t j0 = WINDING_RHCS_CW ? 0 : 3;
+
+                    uint32_t j = j0;
+
+                    // j = [0, 2] CW
+                    // j = [2, 0] CCW
+                    while (true)
                     {
+                        if constexpr (!WINDING_RHCS_CW)
+                        {
+                            --j;
+                        }
+
                         uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
                         uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
 
@@ -171,11 +183,37 @@ McmResult mcmGenerateMeshFN(
                         const Vector3<float> endpoint = cubeOrigin + d0;
                         const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - d0;
 
-                        // Lerp factor between endpoints
-                        float k = (isoLevel - corner[endpointIndex[0]]) / (corner[endpointIndex[1]] - corner[endpointIndex[0]]);
+                        float k;
+
+                        if constexpr (EDGE_LERP)
+                        {
+                            // Lerp factor between endpoints
+                            k = (isoLevel - static_cast<float>(corner[endpointIndex[0]])) /
+                                static_cast<float>(corner[endpointIndex[1]] - corner[endpointIndex[0]]);
+                        }
+                        else
+                        {
+                            k = 0.5f;
+                        }
 
                         // Lerp vertices
                         vertices.push_back(endpoint + k * dEndpoint);
+
+                        if constexpr (WINDING_RHCS_CW)
+                        {
+                            if (j == 2)
+                            {
+                                break;
+                            }
+                            ++j;
+                        }
+                        else
+                        {
+                            if (j == 0)
+                            {
+                                break;
+                            }
+                        }
                     }
 
                     const Vector3<float>* vertex = &vertices[vertices.size() - 3];

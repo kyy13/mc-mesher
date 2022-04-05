@@ -39,7 +39,7 @@ int main()
         scalar = 0.0f;
     }
 
-    auto result = mcmGenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    auto result = mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_FACE_NORMALS);
 
     if (result != McmResult::MCM_SUCCESS)
     {
@@ -54,7 +54,7 @@ int main()
         return -1;
     }
 
-    result = mcmGenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    result = mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_VERTEX_NORMALS);
 
     if (result != McmResult::MCM_SUCCESS)
     {
@@ -76,7 +76,7 @@ int main()
         scalar = 1.0f;
     }
 
-    result = mcmGenerateMeshFN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    result = mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_FACE_NORMALS);
 
     if (result != McmResult::MCM_SUCCESS)
     {
@@ -91,7 +91,7 @@ int main()
         return -1;
     }
 
-    result = mcmGenerateMeshVN(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f);
+    result = mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_VERTEX_NORMALS);
 
     if (result != McmResult::MCM_SUCCESS)
     {
