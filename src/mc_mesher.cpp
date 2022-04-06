@@ -211,7 +211,7 @@ McmResult mcmGenerateMesh_U8(McmMeshBuffer* meshBuffer, const uint8_t* data, Vec
     }
 }
 
-McmResult mcmMeshIntersectRay(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect, McmFlags flags)
+McmResult mcmMeshIntersectRay(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, McmFlags flags, Vector3<float>& pIntersect)
 {
     if ((flags & MCM_EDGE_CENTER) == 0)
     {
@@ -225,7 +225,7 @@ McmResult mcmMeshIntersectRay(const float* data, Vector3<uint32_t> dataSize, flo
     }
 }
 
-McmResult mcmMeshIntersectRay_U8(const uint8_t* data, Vector3<uint32_t> dataSize, uint8_t isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect, McmFlags flags)
+McmResult mcmMeshIntersectRay_U8(const uint8_t* data, Vector3<uint32_t> dataSize, uint8_t isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, McmFlags flags, Vector3<float>& pIntersect)
 {
     if ((flags & MCM_EDGE_CENTER) == 0)
     {

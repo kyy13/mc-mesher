@@ -75,8 +75,8 @@ extern "C"
         float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3<float>                rayPos,         // Starting point of the ray
         Vector3<float>                rayDir,         // Direction of the ray (does not need to be normalized)
-        Vector3<float>&               pIntersect,     // The point of intersection if an intersection occurred
-        McmFlags                      flags);         // Mesh generation flags
+        McmFlags                      flags,          // Mesh generation flags
+        Vector3<float>&               pIntersect);    // The point of intersection if an intersection occurred
 
     // Intersect a scalar field of bytes with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
@@ -87,8 +87,8 @@ extern "C"
         uint8_t                       isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3<float>                rayPos,         // Starting point of the ray
         Vector3<float>                rayDir,         // Direction of the ray (does not need to be normalized)
-        Vector3<float>&               pIntersect,     // The point of intersection if an intersection occurred
-        McmFlags                      flags);         // Mesh generation flags
+        McmFlags                      flags,          // Mesh generation flags
+        Vector3<float>&               pIntersect);    // The point of intersection if an intersection occurred
 
     // Count the number of vertices in the mesh
     uint32_t              __cdecl mcmCountVertices(
