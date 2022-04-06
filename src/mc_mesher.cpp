@@ -4,6 +4,7 @@
 #include "mc_mesher.h"
 #include "McmMeshBuffer.h"
 #include "McmLookupTable.h"
+#include "McmMeshIntersectRay.h"
 #include "McmGenerateMeshFN.h"
 #include "McmGenerateMeshVN.h"
 
@@ -207,5 +208,33 @@ McmResult mcmGenerateMesh_U8(McmMeshBuffer* meshBuffer, const uint8_t* data, Vec
                 return mcmGenerateMeshFN<uint8_t, false, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
             }
         }
+    }
+}
+
+McmResult mcmMeshIntersectRay(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect, McmFlags flags)
+{
+    if ((flags & MCM_EDGE_CENTER) == 0)
+    {
+        // Edge Lerp
+        return mcmMeshIntersectRay<float, true>(data, dataSize, isoLevel, rayPos, rayDir, pIntersect);
+    }
+    else
+    {
+        // Edge Center
+        return mcmMeshIntersectRay<float, false>(data, dataSize, isoLevel, rayPos, rayDir, pIntersect);
+    }
+}
+
+McmResult mcmMeshIntersectRay_U8(const uint8_t* data, Vector3<uint32_t> dataSize, uint8_t isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect, McmFlags flags)
+{
+    if ((flags & MCM_EDGE_CENTER) == 0)
+    {
+        // Edge Lerp
+        return mcmMeshIntersectRay<uint8_t, true>(data, dataSize, isoLevel, rayPos, rayDir, pIntersect);
+    }
+    else
+    {
+        // Edge Center
+        return mcmMeshIntersectRay<uint8_t, false>(data, dataSize, isoLevel, rayPos, rayDir, pIntersect);
     }
 }

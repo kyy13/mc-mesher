@@ -6,7 +6,7 @@
 
 #include "mc_mesher.h"
 #include "McmMeshBuffer.h"
-#include "McmCommon.h"
+#include "McmGeometry.h"
 #include "McmLookupTable.h"
 
 #include <unordered_map>

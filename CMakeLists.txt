@@ -12,9 +12,8 @@ option(MCM_STATIC_GCC "static link gcc?" ON)
 set(
     MCM_SOURCES
     src/mc_mesher.cpp
-    src/McmRayIntersectVirtualMesh.cpp
+    src/McmGeometry.cpp
     src/McmLookupTable.cpp
-    src/McmCommon.cpp
 )
 
 # library

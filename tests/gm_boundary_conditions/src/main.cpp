@@ -6,9 +6,9 @@
 #include <functional>
 #include <vector>
 
-using GenerateMeshFn = std::function<McmResult(const Vector3<uint32_t>&, const Vector3<uint32_t>&)>;
+using GenerateMeshFn = std::function<McmResult(const Vector3<uint32_t>&, const Vector3<uint32_t>&, McmFlags flags)>;
 
-int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, GenerateMeshFn fn)
+int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, McmFlags flags, const GenerateMeshFn& fn)
 {
     // Test: entire mesh successfully generates
 
@@ -26,7 +26,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
             .z = dataSize.z - 1,
         };
 
-    auto result = fn(meshOrigin, meshSize);
+    auto result = fn(meshOrigin, meshSize, flags);
 
     if (result != McmResult::MCM_SUCCESS)
     {
@@ -37,7 +37,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshSize.x = dataSize.x;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (result != McmResult::MCM_OUT_OF_BOUNDS_X)
     {
@@ -50,7 +50,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshSize.y = dataSize.y;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (result != McmResult::MCM_OUT_OF_BOUNDS_Y)
     {
@@ -63,7 +63,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshSize.z = dataSize.z;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (result != McmResult::MCM_OUT_OF_BOUNDS_Z)
     {
@@ -76,7 +76,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshOrigin.x = 1;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (result != McmResult::MCM_OUT_OF_BOUNDS_X)
     {
@@ -89,7 +89,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshOrigin.y = 1;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (result != McmResult::MCM_OUT_OF_BOUNDS_Y)
     {
@@ -102,7 +102,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshOrigin.z = 1;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (result != McmResult::MCM_OUT_OF_BOUNDS_Z)
     {
@@ -115,7 +115,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshSize.x = 0;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (!(
         (result == McmResult::MCM_SUCCESS) &&
@@ -132,7 +132,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshSize.y = 0;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (!(
         (result == McmResult::MCM_SUCCESS) &&
@@ -149,7 +149,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, Gener
 
     meshSize.z = 0;
 
-    result = fn(meshOrigin, meshSize);
+    result = fn(meshOrigin, meshSize, flags);
 
     if (!(
         (result == McmResult::MCM_SUCCESS) &&
@@ -184,6 +184,8 @@ int main()
 
     std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
 
+    std::vector<uint8_t> scalarField_U8(dataSize.x * dataSize.y * dataSize.z);
+
     for (uint32_t z = 0; z != dataSize.z; ++z)
     {
         for (uint32_t y = 0; y != dataSize.y; ++y)
@@ -195,58 +197,67 @@ int main()
                 scalarField[i] = (x < (dataSize.x/2))
                     ? 0.0f
                     : 1.0f;
+
+                scalarField_U8[i] = (x < (dataSize.x/2))
+                    ? 0
+                    : 255;
             }
         }
     }
 
-    // Test Generating Face Normal Mesh
+    McmFlags fullFlags = MCM_WINDING_RHCS_CCW | MCM_FACE_NORMALS | MCM_EDGE_CENTER;
 
-    auto result = TestBoundaries(mesh, dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
+    for (int flags = 0; flags != fullFlags; ++flags)
     {
-        return mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_FACE_NORMALS);
-    });
+        // Test Generating Float meshes
 
-    if (result != 0)
-    {
-        return result;
-    }
-
-    // Test Generating Vertex Normal Mesh
-
-    result = TestBoundaries(mesh, dataSize, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize)
-    {
-        return mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_VERTEX_NORMALS);
-    });
-
-    if (result != 0)
-    {
-        return result;
-    }
-
-    // Test NULL mesh buffers
-
-    const Vector3<uint32_t> meshOrigin =
+        auto result = TestBoundaries(mesh, dataSize, flags, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize, McmFlags flags)
         {
-            .x = 0,
-            .y = 0,
-            .z = 0,
-        };
+            return mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, flags);
+        });
 
-    const Vector3<uint32_t> meshSize =
+        if (result != 0)
         {
-            .x = dataSize.x - 1,
-            .y = dataSize.y - 1,
-            .z = dataSize.z - 1,
-        };
+            return result;
+        }
 
-    if (mcmGenerateMesh(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_FACE_NORMALS) != McmResult::MCM_MESH_BUFFER_IS_NULL)
-    {
-        return -1;
-    }
+        // Test Generating U8 meshes
 
-    if (mcmGenerateMesh(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, MCM_VERTEX_NORMALS) != McmResult::MCM_MESH_BUFFER_IS_NULL)
-    {
-        return -1;
+        result = TestBoundaries(mesh, dataSize, flags, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize, McmFlags flags)
+        {
+            return mcmGenerateMesh_U8(mesh, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags);
+        });
+
+        if (result != 0)
+        {
+            return result;
+        }
+
+        // Test NULL mesh buffers
+
+        const Vector3<uint32_t> meshOrigin =
+            {
+                .x = 0,
+                .y = 0,
+                .z = 0,
+            };
+
+        const Vector3<uint32_t> meshSize =
+            {
+                .x = dataSize.x - 1,
+                .y = dataSize.y - 1,
+                .z = dataSize.z - 1,
+            };
+
+        if (mcmGenerateMesh(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, flags) != McmResult::MCM_MESH_BUFFER_IS_NULL)
+        {
+            return -1;
+        }
+
+        if (mcmGenerateMesh_U8(nullptr, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags) != McmResult::MCM_MESH_BUFFER_IS_NULL)
+        {
+            return -1;
+        }
     }
 
     // Clean up mesh

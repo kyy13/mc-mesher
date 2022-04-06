@@ -3,7 +3,7 @@
 
 #include "mc_mesher.h"
 #include "gradient_noise.h"
-#include "McmCommon.h"
+#include "McmGeometry.h"
 
 #include <cstring>
 #include <vector>
@@ -129,7 +129,7 @@ int main()
 
                 Vector3<float> vOut[12];
 
-                uint32_t numVertices = mcmComputeCaseGeometry(corners, 0.0f, vOut);
+                uint32_t numVertices = mcmComputeCaseGeometry<float, true>(corners, 0.0f, vOut);
 
                 for (uint32_t m = 0; m != numVertices; ++m)
                 {

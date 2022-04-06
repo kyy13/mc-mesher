@@ -9,6 +9,11 @@ using Unity.Collections.LowLevel.Unsafe;
 
 public class McmMeshBuffer : IDisposable
 {
+    public enum McmFlags
+    {
+
+    };
+
     public McmMeshBuffer()
     {
         m_meshBuffer = McmCreateMeshBuffer();
@@ -276,7 +281,7 @@ public class McmMeshBuffer : IDisposable
     // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
     // otherwise, mcmRayIntersectMesh returns MCM_NO_INTERSECTION
-    [DllImport("libmcmesher", EntryPoint = "mcmRayIntersectVirtualMesh", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libmcmesher", EntryPoint = "mcmMeshIntersectRay", CallingConvention = CallingConvention.Cdecl)]
     protected static extern McmResult   McmRayIntersectVirtualMesh(
         float[,,]                           data,           // 3D field of scalar floating-point values as a contiguous array
         Vector3u                            dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z

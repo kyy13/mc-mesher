@@ -3,7 +3,7 @@
 
 #include "mc_mesher.h"
 #include "gradient_noise.h"
-#include "McmCommon.h"
+#include "McmGeometry.h"
 
 #include <cstring>
 #include <vector>

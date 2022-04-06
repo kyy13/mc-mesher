@@ -66,16 +66,29 @@ extern "C"
         uint8_t                       isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         McmFlags                      flags);         // Mesh generation flags
 
-    // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
+    // Intersect a scalar field of floats with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
     // otherwise, mcmRayIntersectMesh returns MCM_NO_INTERSECTION
-    McmResult             __cdecl mcmRayIntersectVirtualMesh(
+    McmResult             __cdecl mcmMeshIntersectRay(
         const float*                  data,           // 3D field of scalar floating-point values as a contiguous array
         Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
         float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3<float>                rayPos,         // Starting point of the ray
         Vector3<float>                rayDir,         // Direction of the ray (does not need to be normalized)
-        Vector3<float>&               pIntersect);    // The point of intersection if an intersection occurred
+        Vector3<float>&               pIntersect,     // The point of intersection if an intersection occurred
+        McmFlags                      flags);         // Mesh generation flags
+
+    // Intersect a scalar field of bytes with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
+    // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
+    // otherwise, mcmRayIntersectMesh returns MCM_NO_INTERSECTION
+    McmResult             __cdecl mcmMeshIntersectRay_U8(
+        const uint8_t*                data,           // 3D field of scalar floating-point values as a contiguous array
+        Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
+        uint8_t                       isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
+        Vector3<float>                rayPos,         // Starting point of the ray
+        Vector3<float>                rayDir,         // Direction of the ray (does not need to be normalized)
+        Vector3<float>&               pIntersect,     // The point of intersection if an intersection occurred
+        McmFlags                      flags);         // Mesh generation flags
 
     // Count the number of vertices in the mesh
     uint32_t              __cdecl mcmCountVertices(

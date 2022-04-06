@@ -1,90 +1,7 @@
 // mc-mesher
 // Kyle J Burgess
 
-#include "McmCommon.h"
-#include "McmLookupTable.h"
-
-#include <cstring>
-
-uint32_t mcmComputeCaseGeometry(const float corners[8], float isoLevel, Vector3<float> vertices[12])
-{
-    uint8_t caseIndex = mcmComputeCaseIndex(corners, isoLevel);
-
-    if (caseIndex == 0x00u || caseIndex == 0xffu)
-    {
-        return 0;
-    }
-
-    const uint32_t caseIndex12 = caseIndex * 12u;
-    const uint32_t cellClass16 = LookupTable::RegularCellClass[caseIndex] << 4u;
-
-    const uint32_t geometryCounts = LookupTable::RegularCellData[cellClass16];
-    const uint32_t triangleCount = (geometryCounts & 0x0Fu);
-    const uint32_t vertCount = triangleCount * 3;
-
-    // Step vertices
-    uint32_t outVertexCount = 0;
-
-    for (uint32_t i = 0; i != vertCount; i += 3)
-    {
-        Vector3<float> triangleVertices[3];
-
-        for (uint32_t j = 0; j != 3; ++j)
-        {
-            const uint32_t vertexIndex = LookupTable::RegularCellData[cellClass16 + i + j + 1];
-            const uint32_t vertexData = LookupTable::RegularVertexData[caseIndex12 + vertexIndex] & 0xFFu;
-
-            const uint32_t endpointIndex[2] =
-                {
-                    vertexData >> 3u,
-                    vertexData & 0x07u,
-                };
-
-            const Vector3<float>& endpoint = LookupTable::UnitCube[endpointIndex[0]];
-            const Vector3<float> dEndpoint = LookupTable::UnitCube[endpointIndex[1]] - endpoint;
-
-            // Lerp factor between endpoints
-            const float k = (isoLevel - corners[endpointIndex[0]]) / (corners[endpointIndex[1]] - corners[endpointIndex[0]]);
-
-            // Lerp vertices
-            triangleVertices[j] = endpoint + k * dEndpoint;
-        }
-
-        // Calculate triangle segments that are too small to render
-        constexpr float epsilon = 0.0000001f;
-
-        Vector3<float> d01 = triangleVertices[1] - triangleVertices[0];
-
-        if (fabsf(d01.x) < epsilon && fabsf(d01.y) < epsilon && fabsf(d01.z) < epsilon)
-        {
-            continue;
-        }
-
-        Vector3<float> d12 = triangleVertices[2] - triangleVertices[1];
-
-        if (fabsf(d12.x) < epsilon && fabsf(d12.y) < epsilon && fabsf(d12.z) < epsilon)
-        {
-            continue;
-        }
-
-        Vector3<float> d02 = triangleVertices[2] - triangleVertices[0];
-
-        if (fabsf(d02.x) < epsilon && fabsf(d02.y) < epsilon && fabsf(d02.z) < epsilon)
-        {
-            continue;
-        }
-
-        // Set vertices
-        vertices[outVertexCount] = triangleVertices[0];
-        ++outVertexCount;
-        vertices[outVertexCount] = triangleVertices[1];
-        ++outVertexCount;
-        vertices[outVertexCount] = triangleVertices[2];
-        ++outVertexCount;
-    }
-
-    return outVertexCount;
-}
+#include "McmGeometry.h"
 
 bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const Vector3<float> triangle[3], Vector3<float>& pIntersect)
 {
@@ -99,8 +16,8 @@ bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const
 
     float det =
         (triangle[1].x - triangle[0].x) * pvec.x +
-        (triangle[1].y - triangle[0].y) * pvec.y +
-        (triangle[1].z - triangle[0].z) * pvec.z;
+            (triangle[1].y - triangle[0].y) * pvec.y +
+            (triangle[1].z - triangle[0].z) * pvec.z;
 
     // always returns false if triangle is back-facing
     if (det < epsilon)
@@ -113,8 +30,8 @@ bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const
 
     const float u = det * (
         (rayPos.x - triangle[0].x) * pvec.x +
-        (rayPos.y - triangle[0].y) * pvec.y +
-        (rayPos.z - triangle[0].z) * pvec.z);
+            (rayPos.y - triangle[0].y) * pvec.y +
+            (rayPos.z - triangle[0].z) * pvec.z);
 
     if (u < 0.0f || u > 1.0f)
     {
@@ -137,8 +54,8 @@ bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const
 
     const float t = det * (
         (triangle[2].x - triangle[0].x) * qvec.x +
-        (triangle[2].y - triangle[0].y) * qvec.y +
-        (triangle[2].z - triangle[0].z) * qvec.z);
+            (triangle[2].y - triangle[0].y) * qvec.y +
+            (triangle[2].z - triangle[0].z) * qvec.z);
 
     if (t < epsilon)
     {

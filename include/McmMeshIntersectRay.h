@@ -1,14 +1,18 @@
 // mc-mesher
 // Kyle J Burgess
 
+#ifndef MCM_MESH_INTERSECT_RAY
+#define MCM_MESH_INTERSECT_RAY
+
 #include "mc_mesher.h"
-#include "McmCommon.h"
+#include "McmGeometry.h"
 #include "McmLookupTable.h"
 
 #include <cmath>
 #include <limits>
 
-McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect)
+template<class T, bool EDGE_LERP>
+McmResult mcmMeshIntersectRay(const T* data, Vector3<uint32_t> dataSize, T isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect)
 {
     constexpr float epsilon = 1e-7f;
 
@@ -34,14 +38,12 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
     {
         return MCM_NO_INTERSECTION;
     }
-    else
-    {
-        rayPos = pIntersect;
-    }
+
+    rayPos = pIntersect;
 
     /*     p3 ------ p7
-     *    / |       /|
-     *   /  |      / |      z
+     *    /|        /|
+     *   / |       / |      z
      *  p2 ------ p6 |      |
      *  |  p0 ----|- p4     o----> y
      *  | /       | /      /
@@ -107,10 +109,10 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
 
     // Get the origin of the cube, so we can determine the contents of the cube
     uint32_t voxelIndex = umin.x + mem_w * umin.y + mem_wh * umin.z;
-    const float* voxel = &data[voxelIndex];
+    const T* voxel = &data[voxelIndex];
 
     // Get case index
-    const float corners[8] =
+    const T corners[8] =
         {
             *(voxel),
             *(voxel + 1),
@@ -129,7 +131,7 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
     {
         Vector3<float> vertices[12];
 
-        uint32_t vertexCount = mcmComputeCaseGeometry(corners, isoLevel, vertices);
+        uint32_t vertexCount = mcmComputeCaseGeometry<T, EDGE_LERP>(corners, isoLevel, vertices);
 
         for (uint32_t i = 0; i != vertexCount; i += 3)
         {
@@ -189,5 +191,7 @@ McmResult mcmRayIntersectVirtualMesh(const float* data, Vector3<uint32_t> dataSi
     rayPos.y += tMin * rayDir.y;
     rayPos.z += tMin * rayDir.z;
 
-    return mcmRayIntersectVirtualMesh(data, dataSize, isoLevel, rayPos, rayDir, pIntersect);
+    return mcmMeshIntersectRay<T, EDGE_LERP>(data, dataSize, isoLevel, rayPos, rayDir, pIntersect);
 }
+
+#endif
