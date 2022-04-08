@@ -11,82 +11,6 @@
 
 #include <unordered_map>
 
-template<class T>
-void generateCubeNormal(const T* voxel, const int memBoundedOffsets[24], const T corners[8], uint32_t whichCorner, Vector3<float>* normals)
-{
-    switch (whichCorner)
-    {
-        case 0:
-            normals[0] =
-                {
-                    .x = static_cast<float>(*(voxel + memBoundedOffsets[0])) - static_cast<float>(corners[1]),
-                    .y = static_cast<float>(*(voxel + memBoundedOffsets[8])) - static_cast<float>(corners[2]),
-                    .z = static_cast<float>(*(voxel + memBoundedOffsets[16])) - static_cast<float>(corners[4]),
-                };
-            break;
-        case 1:
-            normals[1] =
-                {
-                    .x = static_cast<float>(corners[0]) - static_cast<float>(*(voxel + memBoundedOffsets[4])),
-                    .y = static_cast<float>(*(voxel + memBoundedOffsets[9])) - static_cast<float>(corners[3]),
-                    .z = static_cast<float>(*(voxel + memBoundedOffsets[17])) - static_cast<float>(corners[5]),
-                };
-            break;
-        case 2:
-            normals[2] =
-                {
-                    .x = static_cast<float>(*(voxel + memBoundedOffsets[1])) - static_cast<float>(corners[3]),
-                    .y = static_cast<float>(corners[0]) - static_cast<float>(*(voxel + memBoundedOffsets[12])),
-                    .z = static_cast<float>(*(voxel + memBoundedOffsets[18])) - static_cast<float>(corners[6]),
-                };
-            break;
-        case 3:
-            normals[3] =
-                {
-                    .x = static_cast<float>(corners[2]) - static_cast<float>(*(voxel + memBoundedOffsets[5])),
-                    .y = static_cast<float>(corners[1]) - static_cast<float>(*(voxel + memBoundedOffsets[13])),
-                    .z = static_cast<float>(*(voxel + memBoundedOffsets[19])) - static_cast<float>(corners[7]),
-                };
-            break;
-        case 4:
-            normals[4] =
-                {
-                    .x = static_cast<float>(*(voxel + memBoundedOffsets[2])) - static_cast<float>(corners[5]),
-                    .y = static_cast<float>(*(voxel + memBoundedOffsets[10])) - static_cast<float>(corners[6]),
-                    .z = static_cast<float>(corners[0]) - static_cast<float>(*(voxel + memBoundedOffsets[20])),
-                };
-            break;
-        case 5:
-            normals[5] =
-                {
-                    .x = static_cast<float>(corners[4]) - static_cast<float>(*(voxel + memBoundedOffsets[6])),
-                    .y = static_cast<float>(*(voxel + memBoundedOffsets[11])) - static_cast<float>(corners[7]),
-                    .z = static_cast<float>(corners[1]) - static_cast<float>(*(voxel + memBoundedOffsets[21])),
-                };
-            break;
-        case 6:
-            normals[6] =
-                {
-                    .x = static_cast<float>(*(voxel + memBoundedOffsets[3])) - static_cast<float>(corners[7]),
-                    .y = static_cast<float>(corners[4]) - static_cast<float>(*(voxel + memBoundedOffsets[14])),
-                    .z = static_cast<float>(corners[2]) - static_cast<float>(*(voxel + memBoundedOffsets[22])),
-                };
-            break;
-        case 7:
-            normals[7] =
-                {
-                    .x = static_cast<float>(corners[6]) - static_cast<float>(*(voxel + memBoundedOffsets[7])),
-                    .y = static_cast<float>(corners[5]) - static_cast<float>(*(voxel + memBoundedOffsets[15])),
-                    .z = static_cast<float>(corners[3]) - static_cast<float>(*(voxel + memBoundedOffsets[23])),
-                };
-            break;
-        default:
-            break;
-    }
-
-    normals[whichCorner].normalize();
-}
-
 template<class T, bool WINDING_RHCS_CW, bool EDGE_LERP>
 McmResult mcmGenerateMeshVN(
     McmMeshBuffer* mesh,
@@ -547,7 +471,31 @@ McmResult mcmGenerateMeshVN(
 
                                 if (!isCubeNormalCalculated[cornerIndex])
                                 {
-                                    generateCubeNormal(voxel, memBoundedOffsets, corner, cornerIndex, cubeNormals);
+                                    // Generate Normal
+                                    uint32_t ciOver2 = cornerIndex / 2;
+
+                                    // Good Luck
+                                    cubeNormals[cornerIndex] = 
+                                        {
+                                            .x = ((cornerIndex % 2) == 0)
+                                                ? static_cast<float>(*(voxel + memBoundedOffsets[ciOver2])) -
+                                                    static_cast<float>(corner[cornerIndex + 1])
+                                                : static_cast<float>(corner[cornerIndex - 1]) -
+                                                    static_cast<float>(*(voxel + memBoundedOffsets[ciOver2 + 4])),
+                                            .y = ((ciOver2 % 2) == 0)
+                                                ? static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 8 - ciOver2])) -
+                                                    static_cast<float>(corner[cornerIndex + 2])
+                                                : static_cast<float>(corner[cornerIndex - 2]) -
+                                                    static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 11 - ciOver2])),
+                                            .z = (cornerIndex < 4)
+                                                ? static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 16])) -
+                                                    static_cast<float>(corner[cornerIndex + 4])
+                                                : static_cast<float>(corner[cornerIndex - 4]) -
+                                                    static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 16])),
+                                        };
+
+                                    // Normalize
+                                    cubeNormals[cornerIndex].normalize();
 
                                     isCubeNormalCalculated[cornerIndex] = true;
                                 }
