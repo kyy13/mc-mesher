@@ -215,6 +215,26 @@ McmResult mcmGenerateMeshVN(
     auto* zMapCurrent = &zMapA;
     auto* zMapNext = &zMapB;
 
+    // x offsets until max x
+    memBoundedOffsets[0] = memOffsets[8];
+    memBoundedOffsets[1] = memOffsets[9];
+    memBoundedOffsets[2] = memOffsets[10];
+    memBoundedOffsets[3] = memOffsets[11];
+    memBoundedOffsets[4] = memOffsets[12];
+    memBoundedOffsets[5] = memOffsets[13];
+    memBoundedOffsets[6] = memOffsets[14];
+    memBoundedOffsets[7] = memOffsets[15];
+
+    // y clamp until max y
+    memBoundedOffsets[8]  = memOffsets[16];
+    memBoundedOffsets[9]  = memOffsets[17];
+    memBoundedOffsets[10] = memOffsets[18];
+    memBoundedOffsets[11] = memOffsets[19];
+    memBoundedOffsets[12] = memOffsets[20];
+    memBoundedOffsets[13] = memOffsets[21];
+    memBoundedOffsets[14] = memOffsets[22];
+    memBoundedOffsets[15] = memOffsets[23];
+
     // z clamp until max z
     memBoundedOffsets[16] = memOffsets[24];
     memBoundedOffsets[17] = memOffsets[25];
@@ -224,6 +244,10 @@ McmResult mcmGenerateMeshVN(
     memBoundedOffsets[21] = memOffsets[29];
     memBoundedOffsets[22] = memOffsets[30];
     memBoundedOffsets[23] = memOffsets[31];
+
+    // x-axis clamp state
+    bool nClamp = false;
+    bool pClamp = false;
 
     for (; voxel != pz1; voxel += pdz)
     {
@@ -266,11 +290,7 @@ McmResult mcmGenerateMeshVN(
             memBoundedOffsets[23] = memOffsets[7];
         }
 
-        // y clamp until max y
-        memBoundedOffsets[8] = memOffsets[16];
-        memBoundedOffsets[9] = memOffsets[17];
-        memBoundedOffsets[10] = memOffsets[18];
-        memBoundedOffsets[11] = memOffsets[19];
+        // +Y
         memBoundedOffsets[12] = memOffsets[20];
         memBoundedOffsets[13] = memOffsets[21];
         memBoundedOffsets[14] = memOffsets[22];
@@ -309,15 +329,15 @@ McmResult mcmGenerateMeshVN(
                 memBoundedOffsets[15] = memOffsets[7];
             }
 
-            // x offsets until max x
-            memBoundedOffsets[0] = memOffsets[8];
-            memBoundedOffsets[1] = memOffsets[9];
-            memBoundedOffsets[2] = memOffsets[10];
-            memBoundedOffsets[3] = memOffsets[11];
-            memBoundedOffsets[4] = memOffsets[12];
-            memBoundedOffsets[5] = memOffsets[13];
-            memBoundedOffsets[6] = memOffsets[14];
-            memBoundedOffsets[7] = memOffsets[15];
+            // +X
+            // memBoundedOffsets[0] = memOffsets[8];
+            // memBoundedOffsets[1] = memOffsets[9];
+            // memBoundedOffsets[2] = memOffsets[10];
+            // memBoundedOffsets[3] = memOffsets[11];
+            // memBoundedOffsets[4] = memOffsets[12];
+            // memBoundedOffsets[5] = memOffsets[13];
+            // memBoundedOffsets[6] = memOffsets[14];
+            // memBoundedOffsets[7] = memOffsets[15];
 
             for (; voxel != px1; ++voxel)
             {
@@ -352,22 +372,21 @@ McmResult mcmGenerateMeshVN(
                 uint32_t vertCount = triangleCount * 3;
 
                 // Clamp -X adjacent memory offsets
-                if (x < 2)
+                if (x == 0)
                 {
-                    if (x == 0)
-                    {
-                        memBoundedOffsets[0] = memOffsets[0];
-                        memBoundedOffsets[1] = memOffsets[2];
-                        memBoundedOffsets[2] = memOffsets[4];
-                        memBoundedOffsets[3] = memOffsets[6];
-                    }
-                    else
-                    {
-                        memBoundedOffsets[0] = memOffsets[8];
-                        memBoundedOffsets[1] = memOffsets[9];
-                        memBoundedOffsets[2] = memOffsets[10];
-                        memBoundedOffsets[3] = memOffsets[11];
-                    }
+                    memBoundedOffsets[0] = memOffsets[0];
+                    memBoundedOffsets[1] = memOffsets[2];
+                    memBoundedOffsets[2] = memOffsets[4];
+                    memBoundedOffsets[3] = memOffsets[6];
+                    nClamp = true;
+                }
+                else if (nClamp)
+                {
+                    memBoundedOffsets[0] = memOffsets[8];
+                    memBoundedOffsets[1] = memOffsets[9];
+                    memBoundedOffsets[2] = memOffsets[10];
+                    memBoundedOffsets[3] = memOffsets[11];
+                    nClamp = false;
                 }
 
                 // Clamp +X adjacent memory offsets
@@ -377,6 +396,15 @@ McmResult mcmGenerateMeshVN(
                     memBoundedOffsets[5] = memOffsets[3];
                     memBoundedOffsets[6] = memOffsets[5];
                     memBoundedOffsets[7] = memOffsets[7];
+                    pClamp = true;
+                }
+                else if (pClamp)
+                {
+                    memBoundedOffsets[4] = memOffsets[12];
+                    memBoundedOffsets[5] = memOffsets[13];
+                    memBoundedOffsets[6] = memOffsets[14];
+                    memBoundedOffsets[7] = memOffsets[15];
+                    pClamp = false;
                 }
 
                 // Setup un-normalized cube normals
@@ -452,14 +480,12 @@ McmResult mcmGenerateMeshVN(
                                 float corner0 = static_cast<float>(corner[endpointIndex[0]]);
                                 float corner1 = static_cast<float>(corner[endpointIndex[1]]);
                                 k = (fIsoLevel - corner0) / (corner1 - corner0);
+                                vertices.push_back(endpoint + k * dEndpoint);
                             }
                             else
                             {
-                                k = 0.5f;
+                                vertices.push_back(endpoint + 0.5f * dEndpoint);
                             }
-
-                            // Lerp vertices
-                            vertices.push_back(endpoint + k * dEndpoint);
 
                             // Lerp vertex normals
 
@@ -505,9 +531,18 @@ McmResult mcmGenerateMeshVN(
 
                             const Vector3<float> dNormal = endpointNormals[1] - endpointNormals[0];
 
-                            auto normal = endpointNormals[0] + k * dNormal;
-                            normal.normalize();
-                            normals.push_back(normal);
+                            if constexpr (EDGE_LERP)
+                            {
+                                auto normal = endpointNormals[0] + k * dNormal;
+                                normal.normalize();
+                                normals.push_back(normal);
+                            }
+                            else
+                            {
+                                auto normal = endpointNormals[0] + 0.5f * dNormal;
+                                normal.normalize();
+                                normals.push_back(normal);
+                            }
 
                             // Cache
                             (*whichCache)[cacheKey] = vertexCount;
