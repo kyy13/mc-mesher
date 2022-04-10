@@ -16,9 +16,6 @@ McmResult mcmMeshIntersectRay(const T* data, Vector3<uint32_t> dataSize, T isoLe
 {
     constexpr float epsilon = 1e-7f;
 
-    const uint32_t mem_w = dataSize.x;
-    const uint32_t mem_wh = dataSize.x * dataSize.y;
-
     // March ray to AABB if outside entire data set
     const Vector3<float> minB =
         {
@@ -36,8 +33,11 @@ McmResult mcmMeshIntersectRay(const T* data, Vector3<uint32_t> dataSize, T isoLe
 
     if (!mcmRayIntersectAABB(minB, maxB, rayPos, rayDir, pIntersect))
     {
-        return MCM_NO_INTERSECTION;
+        return MCM_FAILURE;
     }
+
+    const uint32_t mem_w = dataSize.x;
+    const uint32_t mem_wh = dataSize.x * dataSize.y;
 
     rayPos = pIntersect;
 
@@ -151,7 +151,7 @@ McmResult mcmMeshIntersectRay(const T* data, Vector3<uint32_t> dataSize, T isoLe
     // If there is no movement, then we are not going to hit anything in an unfilled box
     if (rayDir.x == 0.0f && rayDir.y == 0.0f && rayDir.z == 0.0f)
     {
-        return MCM_NO_INTERSECTION;
+        return MCM_FAILURE;
     }
 
     // Step along ray to find next cube

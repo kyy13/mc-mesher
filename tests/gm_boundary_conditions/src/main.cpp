@@ -223,15 +223,15 @@ int main()
 
         // Test Generating U8 meshes
 
-        result = TestBoundaries(mesh, dataSize, flags, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize, McmFlags flags)
-        {
-            return mcmGenerateMesh_U8(mesh, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags);
-        });
-
-        if (result != 0)
-        {
-            return result;
-        }
+//        result = TestBoundaries(mesh, dataSize, flags, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize, McmFlags flags)
+//        {
+//            return mcmGenerateMesh_U8(mesh, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags);
+//        });
+//
+//        if (result != 0)
+//        {
+//            return result;
+//        }
 
         // Test NULL mesh buffers
 
@@ -254,10 +254,10 @@ int main()
             return -1;
         }
 
-        if (mcmGenerateMesh_U8(nullptr, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags) != McmResult::MCM_MESH_BUFFER_IS_NULL)
-        {
-            return -1;
-        }
+//        if (mcmGenerateMesh_U8(nullptr, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags) != McmResult::MCM_MESH_BUFFER_IS_NULL)
+//        {
+//            return -1;
+//        }
     }
 
     // Clean up mesh

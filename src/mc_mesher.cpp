@@ -4,6 +4,7 @@
 #include "mc_mesher.h"
 #include "McmMeshBuffer.h"
 #include "McmLookupTable.h"
+#include "McmMeshContainsPoint.h"
 #include "McmMeshIntersectRay.h"
 #include "McmMeshIntersectSegment.h"
 #include "McmGenerateMeshFN.h"
@@ -139,6 +140,20 @@ McmResult mcmGenerateMesh(McmMeshBuffer* meshBuffer, const float* data, Vector3<
                 return mcmGenerateMeshFN<float, false, false>(meshBuffer, data, dataSize, meshOrigin, meshSize, isoLevel);
             }
         }
+    }
+}
+
+McmResult mcmMeshContainsPoint(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> point, McmFlags flags)
+{
+    if ((flags & MCM_EDGE_CENTER) == 0)
+    {
+        // Edge Lerp
+        return mcmMeshContainsPoint<float, true>(data, dataSize, isoLevel, point);
+    }
+    else
+    {
+        // Edge Center
+        return mcmMeshContainsPoint<float, false>(data, dataSize, isoLevel, point);
     }
 }
 

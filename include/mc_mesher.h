@@ -17,11 +17,11 @@ extern "C"
     enum                          McmResult : uint32_t
     {
         MCM_SUCCESS                   = 0x0,            // Function was successful
-        MCM_MESH_BUFFER_IS_NULL       = 0x1,            // Error, the mesh buffer passed to the function was NULL
-        MCM_OUT_OF_BOUNDS_X           = 0x2,            // Error, an argument passed to the function was out of bounds in the x-axis
-        MCM_OUT_OF_BOUNDS_Y           = 0x3,            // Error, an argument passed to the function was out of bounds in the y-axis
-        MCM_OUT_OF_BOUNDS_Z           = 0x4,            // Error, an argument passed to the function was out of bounds in the z-axis
-        MCM_NO_INTERSECTION           = 0x5,            // Returned by mcmRayIntersectMesh when there is no intersection
+        MCM_FAILURE                   = 0x1,            // False condition, primarily for geometry functions
+        MCM_MESH_BUFFER_IS_NULL       = 0x2,            // Error, the mesh buffer passed to the function was NULL
+        MCM_OUT_OF_BOUNDS_X           = 0x3,            // Error, an argument passed to the function was out of bounds in the x-axis
+        MCM_OUT_OF_BOUNDS_Y           = 0x4,            // Error, an argument passed to the function was out of bounds in the y-axis
+        MCM_OUT_OF_BOUNDS_Z           = 0x5,            // Error, an argument passed to the function was out of bounds in the z-axis
     };
 
     // Mesh generation flags
@@ -56,9 +56,19 @@ extern "C"
         float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         McmFlags                      flags);         // Mesh generation flags
 
+    // Determine if a scalar field of floats contains a point (the mesh does not need to be generated)
+    // If the mesh contains the point, then mcmMeshContainsPoint returns MCM_SUCCESS
+    // otherwise, mcmMeshContainsPoint returns MCM_FAILURE
+    McmResult             __cdecl mcmMeshContainsPoint(
+        const float*                  data,           // 3D field of scalar floating-point values as a contiguous array
+        Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
+        float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
+        Vector3<float>                point,          // The point to check
+        McmFlags                      flags);         // Mesh generation flags
+
     // Intersect a scalar field of floats with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmMeshIntersectRay returns MCM_SUCCESS, and the point of intersection is set,
-    // otherwise, mcmMeshIntersectRay returns MCM_NO_INTERSECTION
+    // otherwise, mcmMeshIntersectRay returns MCM_FAILURE
     McmResult             __cdecl mcmMeshIntersectRay(
         const float*                  data,           // 3D field of scalar floating-point values as a contiguous array
         Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
@@ -70,7 +80,7 @@ extern "C"
 
     // Intersect a scalar field of floats with a segment (gives the same results as mesh-segment intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmMeshIntersectSegment returns MCM_SUCCESS, and the point of intersection is set,
-    // otherwise, mcmMeshIntersectSegment returns MCM_NO_INTERSECTION
+    // otherwise, mcmMeshIntersectSegment returns MCM_FAILURE
     McmResult             __cdecl mcmMeshIntersectSegment(
         const float*                  data,           // 3D field of scalar floating-point values as a contiguous array
         Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z

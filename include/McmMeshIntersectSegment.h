@@ -16,9 +16,6 @@ McmResult _mcmMeshIntersectSegment(const T* data, Vector3<uint32_t> dataSize, T 
 {
     constexpr float epsilon = 1e-7f;
 
-    const uint32_t mem_w = dataSize.x;
-    const uint32_t mem_wh = dataSize.x * dataSize.y;
-
     // March ray to AABB if outside entire data set
     const Vector3<float> minB =
         {
@@ -37,15 +34,18 @@ McmResult _mcmMeshIntersectSegment(const T* data, Vector3<uint32_t> dataSize, T 
     Vector3<float> pIntersect;
     if (!mcmRayIntersectAABB(minB, maxB, segPos, segDir, pIntersect))
     {
-        return MCM_NO_INTERSECTION;
+        return MCM_FAILURE;
     }
+
+    const uint32_t mem_w = dataSize.x;
+    const uint32_t mem_wh = dataSize.x * dataSize.y;
 
     Vector3<float> delta = segPos - pIntersect;
     d -= delta.magnitude();
 
     if (d < 0.0f)
     {
-        return MCM_NO_INTERSECTION;
+        return MCM_FAILURE;
     }
 
     segPos = pIntersect;
@@ -155,7 +155,7 @@ McmResult _mcmMeshIntersectSegment(const T* data, Vector3<uint32_t> dataSize, T 
 
                 return (d >= 0.0f)
                     ? MCM_SUCCESS
-                    : MCM_NO_INTERSECTION;
+                    : MCM_FAILURE;
             }
         }
     }
@@ -165,7 +165,7 @@ McmResult _mcmMeshIntersectSegment(const T* data, Vector3<uint32_t> dataSize, T 
     // If there is no movement, then we are not going to hit anything in an unfilled box
     if (segDir.x == 0.0f && segDir.y == 0.0f && segDir.z == 0.0f)
     {
-        return MCM_NO_INTERSECTION;
+        return MCM_FAILURE;
     }
 
     // Step along ray to find next cube
@@ -212,7 +212,7 @@ McmResult _mcmMeshIntersectSegment(const T* data, Vector3<uint32_t> dataSize, T 
 
     if (d < 0.0f)
     {
-        return MCM_NO_INTERSECTION;
+        return MCM_FAILURE;
     }
 
     return _mcmMeshIntersectSegment<T, EDGE_LERP>(data, dataSize, isoLevel, segPos, segDir, d);
@@ -226,7 +226,7 @@ McmResult mcmMeshIntersectSegment(const T* data, Vector3<uint32_t> dataSize, T i
     float dTotal = delta.magnitude();
     float d = dTotal;
 
-    McmResult r = _mcmMeshIntersectSegment(data, dataSize, isoLevel, segPos, delta, d);
+    McmResult r = _mcmMeshIntersectSegment<T, EDGE_LERP>(data, dataSize, isoLevel, segPos, delta, d);
 
     if (r == MCM_SUCCESS)
     {
@@ -237,7 +237,7 @@ McmResult mcmMeshIntersectSegment(const T* data, Vector3<uint32_t> dataSize, T i
             return MCM_SUCCESS;
         }
 
-        return MCM_NO_INTERSECTION;
+        return MCM_FAILURE;
     }
 
     return r;
