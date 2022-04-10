@@ -57,14 +57,26 @@ extern "C"
         McmFlags                      flags);         // Mesh generation flags
 
     // Intersect a scalar field of floats with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
-    // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
-    // otherwise, mcmRayIntersectMesh returns MCM_NO_INTERSECTION
+    // If an intersection occurs, then mcmMeshIntersectRay returns MCM_SUCCESS, and the point of intersection is set,
+    // otherwise, mcmMeshIntersectRay returns MCM_NO_INTERSECTION
     McmResult             __cdecl mcmMeshIntersectRay(
         const float*                  data,           // 3D field of scalar floating-point values as a contiguous array
         Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
         float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3<float>                rayPos,         // Starting point of the ray
         Vector3<float>                rayDir,         // Direction of the ray (does not need to be normalized)
+        McmFlags                      flags,          // Mesh generation flags
+        Vector3<float>&               pIntersect);    // The point of intersection if an intersection occurred
+
+    // Intersect a scalar field of floats with a segment (gives the same results as mesh-segment intersection except faster, and the mesh does not need to be generated)
+    // If an intersection occurs, then mcmMeshIntersectSegment returns MCM_SUCCESS, and the point of intersection is set,
+    // otherwise, mcmMeshIntersectSegment returns MCM_NO_INTERSECTION
+    McmResult             __cdecl mcmMeshIntersectSegment(
+        const float*                  data,           // 3D field of scalar floating-point values as a contiguous array
+        Vector3<uint32_t>             dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
+        float                         isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
+        Vector3<float>                segPos,         // Starting point of the segment
+        Vector3<float>                segEnd,         // End point of the segment
         McmFlags                      flags,          // Mesh generation flags
         Vector3<float>&               pIntersect);    // The point of intersection if an intersection occurred
 

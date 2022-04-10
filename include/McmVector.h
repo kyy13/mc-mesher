@@ -76,6 +76,12 @@ struct Vector3
         y *= oneOverLen;
         z *= oneOverLen;
     }
+
+    [[nodiscard]]
+    float magnitude() const
+    {
+        return sqrtf(x * x + y * y + z * z);
+    }
 };
 
 template<class T>
