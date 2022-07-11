@@ -270,7 +270,7 @@ public class McmMeshBuffer : IDisposable
         Vector3u                      dataSize,             // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
         float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3                       point,                // The point to check
-        McmFlags                      flags);               // Mesh generation flags
+        McmFlag                       flags);               // Mesh generation flags
 
     // Determine if a scalar field of floats contains a point (the mesh does not need to be generated)
     // If the mesh contains the point, then mcmMeshContainsPoint returns MCM_SUCCESS
@@ -281,7 +281,7 @@ public class McmMeshBuffer : IDisposable
         Vector3u                      dataSize,             // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
         float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3                       point,                // The point to check
-        McmFlags                      flags);               // Mesh generation flags
+        McmFlag                       flags);               // Mesh generation flags
 
     // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
@@ -319,7 +319,7 @@ public class McmMeshBuffer : IDisposable
         float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3                       segPos,               // Starting point of the segment
         Vector3                       segEnd,               // End point of the segment
-        McmFlags                      flags,                // Mesh generation flags
+        McmFlag                       flags,                // Mesh generation flags
         out Vector3                   pIntersect);          // The point of intersection if an intersection occurred
 
     // Intersect a scalar field of floats with a segment (gives the same results as mesh-segment intersection except faster, and the mesh does not need to be generated)
@@ -332,7 +332,7 @@ public class McmMeshBuffer : IDisposable
         float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
         Vector3                       segPos,               // Starting point of the segment
         Vector3                       segEnd,               // End point of the segment
-        McmFlags                      flags,                // Mesh generation flags
+        McmFlag                       flags,                // Mesh generation flags
         out Vector3                   pIntersect);          // The point of intersection if an intersection occurred
 
     // Count the number of vertices in the mesh
