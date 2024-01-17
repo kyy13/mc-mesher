@@ -11,10 +11,10 @@ public class McmMeshBuffer : IDisposable
 {
     public enum McmFlag : uint
     {
-        MCM_WINDING_LHCS_CW           = 0x0,            // Vertex winding order is CW for a left-handed coordinate system
-        MCM_WINDING_LHCS_CCW          = 0x1,            // Vertex winding order is CCW for a left-handed coordinate system
-        MCM_WINDING_RHCS_CW           = MCM_WINDING_LHCS_CCW,
-        MCM_WINDING_RHCS_CCW          = MCM_WINDING_LHCS_CW,
+        MCM_WINDING_RHCS_CW           = 0x0,            // Vertex winding order is CW for a right-handed coordinate system
+        MCM_WINDING_RHCS_CCW          = 0x1,            // Vertex winding order is CCW for a right-handed coordinate system
+        MCM_WINDING_LHCS_CW           = MCM_WINDING_RHCS_CCW,
+        MCM_WINDING_LHCS_CCW          = MCM_WINDING_RHCS_CW,
         MCM_VERTEX_NORMALS            = 0x0,            // Calculate per-vertex normals from the voxel field
         MCM_FACE_NORMALS              = 0x2,            // Calculate per-vertex normals using the containing triangles' normals
         MCM_EDGE_LERP                 = 0x0,            // Lerp vertex position between edges based on weight
