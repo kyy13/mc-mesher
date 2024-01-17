@@ -38,6 +38,12 @@ target_include_directories(
     include
 )
 
+target_include_directories(
+    ${PROJECT_NAME}
+    PRIVATE
+    src
+)
+
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_options(
         ${PROJECT_NAME}

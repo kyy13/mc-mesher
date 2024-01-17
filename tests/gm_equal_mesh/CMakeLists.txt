@@ -10,6 +10,7 @@ target_include_directories(
         gm_equal_mesh
         PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src
         "../ext/gradient-noise/include"
 )
 

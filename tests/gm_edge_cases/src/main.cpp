@@ -7,30 +7,30 @@
 
 int main()
 {
-    const Vector3<uint32_t> dataSize =
+    const uint32_t dataSize[3] =
         {
-            .x = 16,
-            .y = 16,
-            .z = 16,
+            16,
+            16,
+            16,
         };
 
-    const Vector3<uint32_t> meshOrigin =
+    const uint32_t meshOrigin[3] =
         {
-            .x = 0,
-            .y = 0,
-            .z = 0,
+            0,
+            0,
+            0,
         };
 
-    const Vector3<uint32_t> meshSize =
+    const uint32_t meshSize[3] =
         {
-            .x = dataSize.x - 1,
-            .y = dataSize.y - 1,
-            .z = dataSize.z - 1,
+            dataSize[0] - 1,
+            dataSize[1] - 1,
+            dataSize[2] - 1,
         };
 
     auto mesh = mcmCreateMeshBuffer();
 
-    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
+    std::vector<float> scalarField(dataSize[0] * dataSize[1] * dataSize[2]);
 
     // Test: all values under iso level
 

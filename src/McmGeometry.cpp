@@ -2,22 +2,21 @@
 // Kyle J Burgess
 
 #include "McmGeometry.h"
+#include <cstring>
 
-bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const Vector3<float> triangle[3], Vector3<float>& pIntersect)
+bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const Vector3<float> triangle[3], float pIntersect[3])
 {
     constexpr float epsilon = 0.0000001f;
 
-    const Vector3<float> pvec =
-        {
-            .x = rayDir.y * (triangle[2].z - triangle[0].z) - rayDir.z * (triangle[2].y - triangle[0].y),
-            .y = rayDir.z * (triangle[2].x - triangle[0].x) - rayDir.x * (triangle[2].z - triangle[0].z),
-            .z = rayDir.x * (triangle[2].y - triangle[0].y) - rayDir.y * (triangle[2].x - triangle[0].x),
-        };
+    const Vector3<float> pvec = Vector3<float>(
+            rayDir.y * (triangle[2].z - triangle[0].z) - rayDir.z * (triangle[2].y - triangle[0].y),
+            rayDir.z * (triangle[2].x - triangle[0].x) - rayDir.x * (triangle[2].z - triangle[0].z),
+            rayDir.x * (triangle[2].y - triangle[0].y) - rayDir.y * (triangle[2].x - triangle[0].x));
 
     float det =
         (triangle[1].x - triangle[0].x) * pvec.x +
-            (triangle[1].y - triangle[0].y) * pvec.y +
-            (triangle[1].z - triangle[0].z) * pvec.z;
+        (triangle[1].y - triangle[0].y) * pvec.y +
+        (triangle[1].z - triangle[0].z) * pvec.z;
 
     // always returns false if triangle is back-facing
     if (det < epsilon)
@@ -30,20 +29,18 @@ bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const
 
     const float u = det * (
         (rayPos.x - triangle[0].x) * pvec.x +
-            (rayPos.y - triangle[0].y) * pvec.y +
-            (rayPos.z - triangle[0].z) * pvec.z);
+        (rayPos.y - triangle[0].y) * pvec.y +
+        (rayPos.z - triangle[0].z) * pvec.z);
 
     if (u < 0.0f || u > 1.0f)
     {
         return false;
     }
 
-    const Vector3<float> qvec =
-        {
-            .x = (rayPos.y - triangle[0].y) * (triangle[1].z - triangle[0].z) - (rayPos.z - triangle[0].z) * (triangle[1].y - triangle[0].y),
-            .y = (rayPos.z - triangle[0].z) * (triangle[1].x - triangle[0].x) - (rayPos.x - triangle[0].x) * (triangle[1].z - triangle[0].z),
-            .z = (rayPos.x - triangle[0].x) * (triangle[1].y - triangle[0].y) - (rayPos.y - triangle[0].y) * (triangle[1].x - triangle[0].x),
-        };
+    const Vector3<float> qvec = Vector3<float>(
+            (rayPos.y - triangle[0].y) * (triangle[1].z - triangle[0].z) - (rayPos.z - triangle[0].z) * (triangle[1].y - triangle[0].y),
+            (rayPos.z - triangle[0].z) * (triangle[1].x - triangle[0].x) - (rayPos.x - triangle[0].x) * (triangle[1].z - triangle[0].z),
+            (rayPos.x - triangle[0].x) * (triangle[1].y - triangle[0].y) - (rayPos.y - triangle[0].y) * (triangle[1].x - triangle[0].x));
 
     const float v = det * (rayDir.x * qvec.x + rayDir.y * qvec.y + rayDir.z * qvec.z);
 
@@ -62,17 +59,14 @@ bool mcmRayIntersectTriangle(Vector3<float> rayPos, Vector3<float> rayDir, const
         return false;
     }
 
-    pIntersect =
-        {
-            .x = rayPos.x + t * rayDir.x,
-            .y = rayPos.y + t * rayDir.y,
-            .z = rayPos.z + t * rayDir.z,
-        };
+    pIntersect[0] = rayPos.x + t * rayDir.x;
+    pIntersect[1] = rayPos.y + t * rayDir.y;
+    pIntersect[2] = rayPos.z + t * rayDir.z;
 
     return true;
 }
 
-bool mcmRayIntersectAABB(const Vector3<float>& minB, const Vector3<float>& maxB, const Vector3<float>& rayPos, const Vector3<float>& rayDir, Vector3<float>& pIntersect)
+bool mcmRayIntersectAABB(const Vector3<float>& minB, const Vector3<float>& maxB, const Vector3<float>& rayPos, const Vector3<float>& rayDir, float pIntersect[3])
 {
     constexpr int RIGHT = 0;
     constexpr int LEFT = 1;
@@ -141,7 +135,7 @@ bool mcmRayIntersectAABB(const Vector3<float>& minB, const Vector3<float>& maxB,
     // inside AABB
     if (inside)
     {
-        pIntersect = rayPos;
+        memcpy(pIntersect, &rayPos, sizeof(rayPos));
         return true;
     }
 
@@ -192,46 +186,46 @@ bool mcmRayIntersectAABB(const Vector3<float>& minB, const Vector3<float>& maxB,
     // x
     if (whichPlane != 0)
     {
-        pIntersect.x = rayPos.x + maxT[whichPlane] * rayDir.x;
+        pIntersect[0] = rayPos.x + maxT[whichPlane] * rayDir.x;
 
-        if (pIntersect.x < minB.x || pIntersect.x > maxB.x)
+        if (pIntersect[0] < minB.x || pIntersect[0] > maxB.x)
         {
             return false;
         }
     }
     else
     {
-        pIntersect.x = candidatePlane[0];
+        pIntersect[0] = candidatePlane[0];
     }
 
     // y
     if (whichPlane != 1)
     {
-        pIntersect.y = rayPos.y + maxT[whichPlane] * rayDir.y;
+        pIntersect[1] = rayPos.y + maxT[whichPlane] * rayDir.y;
 
-        if (pIntersect.y < minB.y || pIntersect.y > maxB.y)
+        if (pIntersect[1] < minB.y || pIntersect[1] > maxB.y)
         {
             return false;
         }
     }
     else
     {
-        pIntersect.y = candidatePlane[1];
+        pIntersect[1] = candidatePlane[1];
     }
 
     // z
     if (whichPlane != 2)
     {
-        pIntersect.z = rayPos.z + maxT[whichPlane] * rayDir.z;
+        pIntersect[2] = rayPos.z + maxT[whichPlane] * rayDir.z;
 
-        if (pIntersect.z < minB.z || pIntersect.z > maxB.z)
+        if (pIntersect[2] < minB.z || pIntersect[2] > maxB.z)
         {
             return false;
         }
     }
     else
     {
-        pIntersect.z = candidatePlane[2];
+        pIntersect[2] = candidatePlane[2];
     }
 
     return true;

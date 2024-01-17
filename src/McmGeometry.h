@@ -14,7 +14,7 @@ bool     mcmRayIntersectTriangle(
     Vector3<float>                  rayPos,
     Vector3<float>                  rayDir,
     const Vector3<float>            triangle[3],
-    Vector3<float>&                 pIntersect);
+    float                           pIntersect[3]);
 
 // Determine if ray intersects AABB
 bool     mcmRayIntersectAABB(
@@ -22,7 +22,7 @@ bool     mcmRayIntersectAABB(
     const Vector3<float>&           maxB,
     const Vector3<float>&           rayPos,
     const Vector3<float>&           rayDir,
-    Vector3<float>&                 pIntersect);
+    float                           pIntersect[3]);
 
 // Generate a Case Index for a cube
 template<class T>

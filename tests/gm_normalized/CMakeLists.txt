@@ -10,6 +10,7 @@ target_include_directories(
         gm_normalized
         PUBLIC
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src
         "../ext/gradient-noise/include"
 )
 

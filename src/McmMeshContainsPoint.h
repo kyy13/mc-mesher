@@ -13,8 +13,11 @@
 #include <limits>
 
 template<class T, bool EDGE_LERP>
-McmResult mcmMeshContainsPoint(const T* data, Vector3<uint32_t> dataSize, T isoLevel, Vector3<float> point)
+McmResult mcmMeshContainsPoint(const T* data, const uint32_t _dataSize[3], T isoLevel, const float _point[3])
 {
+    Vector3<uint32_t> dataSize(_dataSize);
+    Vector3<float> point(_point);
+
     const Vector3<float> minB =
         {
             0.0f,
@@ -40,12 +43,10 @@ McmResult mcmMeshContainsPoint(const T* data, Vector3<uint32_t> dataSize, T isoL
         return MCM_FAILURE;
     }
 
-    Vector3<uint32_t> umin =
-        {
-            .x = static_cast<uint32_t>(point.x),
-            .y = static_cast<uint32_t>(point.y),
-            .z = static_cast<uint32_t>(point.z),
-        };
+    Vector3<uint32_t> umin = Vector3<uint32_t>(
+            static_cast<uint32_t>(point.x),
+            static_cast<uint32_t>(point.y),
+            static_cast<uint32_t>(point.z));
 
     if (umin.x == dataSize.x - 1)
     { --umin.z; }
@@ -91,27 +92,27 @@ McmResult mcmMeshContainsPoint(const T* data, Vector3<uint32_t> dataSize, T isoL
     // Pick a corner that is < isoLevel (outside) and draw
     // a segment to it.
 
-    Vector3<float> origin =
-        {
-            .x = static_cast<float>(umin.x),
-            .y = static_cast<float>(umin.y),
-            .z = static_cast<float>(umin.z),
-        };
+    Vector3<float> origin = Vector3<float>(
+            static_cast<float>(umin.x),
+            static_cast<float>(umin.y),
+            static_cast<float>(umin.z));
 
-    Vector3<float> pOutside;
+    float pOutside[3];
 
     for (uint32_t i = 0; i != 8; ++i)
     {
         if (corners[i] < isoLevel)
         {
-            pOutside = origin + LookupTable::UnitCube[i];
+            pOutside[0] = origin.x + LookupTable::UnitCube[i].x;
+            pOutside[1] = origin.y + LookupTable::UnitCube[i].y;
+            pOutside[2] = origin.z + LookupTable::UnitCube[i].z;
             break;
         }
     }
 
     // If the point intersects surface to reach pOutside, then it is inside the surface
-    Vector3<float> pIntersect;
-    return mcmMeshIntersectSegment<T, EDGE_LERP>(data, dataSize, isoLevel, point, pOutside, pIntersect);
+    float pIntersect[3];
+    return mcmMeshIntersectSegment<T, EDGE_LERP>(data, _dataSize, isoLevel, _point, pOutside, pIntersect);
 }
 
 #endif

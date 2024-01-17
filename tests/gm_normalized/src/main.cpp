@@ -38,15 +38,18 @@ float GetValue(size_t x, size_t y, size_t z)
     }
 }
 
-bool testNormals(const Vector3<float>* normals, size_t count)
+bool testNormals(const float* normals, size_t count)
 {
     const float epsilon = 1e-2f;
 
     for (size_t i = 0; i != count; ++i)
     {
-        const auto& n = normals[i];
+        const float* n = &normals[i * 3];
 
-        float size_2 = n.x * n.x + n.y * n.y + n.z * n.z;
+        float size_2 = 
+            n[0] * n[0] + 
+            n[1] * n[1] + 
+            n[2] * n[2];
 
         if (fabsf(1.0f - size_2) > epsilon)
         {
@@ -60,36 +63,36 @@ bool testNormals(const Vector3<float>* normals, size_t count)
 
 int main()
 {
-    const Vector3<uint32_t> dataSize =
+    const uint32_t dataSize[3] =
         {
-            .x = 32,
-            .y = 32,
-            .z = 32,
+            32,
+            32,
+            32,
         };
 
-    const Vector3<uint32_t> meshOrigin =
+    const uint32_t meshOrigin[3] =
         {
-            .x = 2,
-            .y = 2,
-            .z = 2,
+            2,
+            2,
+            2,
         };
 
-    const Vector3<uint32_t> meshSize =
+    const uint32_t meshSize[3] =
         {
-            .x = dataSize.x - 5,
-            .y = dataSize.y - 5,
-            .z = dataSize.z - 5,
+            dataSize[0] - 5,
+            dataSize[1] - 5,
+            dataSize[2] - 5,
         };
 
-    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
+    std::vector<float> scalarField(dataSize[0] * dataSize[1] * dataSize[2]);
 
-    for (size_t z = 0; z != dataSize.z; ++z)
+    for (size_t z = 0; z != dataSize[2]; ++z)
     {
-        for (size_t y = 0; y != dataSize.y; ++y)
+        for (size_t y = 0; y != dataSize[1]; ++y)
         {
-            for (size_t x = 0; x != dataSize.x; ++x)
+            for (size_t x = 0; x != dataSize[0]; ++x)
             {
-                size_t i = x + dataSize.x * (y + dataSize.y * z);
+                size_t i = x + dataSize[0] * (y + dataSize[1] * z);
 
                 scalarField[i] = GetValue(x, y, z);
             }

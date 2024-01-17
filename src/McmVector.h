@@ -5,6 +5,7 @@
 #define MCM_VECTOR_H
 
 #include <cmath>
+#include <cstring>
 
 struct Vector2
 {
@@ -21,40 +22,38 @@ struct Vector3
     T y;
     T z;
 
+    Vector3()
+    {}
+
+    Vector3(T _x, T _y, T _z) : x(_x), y(_y), z(_z)
+    {}
+
+    Vector3(const T ptr[3])
+    {
+        memcpy(&x, ptr, 3 * sizeof(T));
+    }
+
     constexpr Vector3 operator+(const Vector3& v) const
     {
-        return {
-            .x = x + v.x,
-            .y = y + v.y,
-            .z = z + v.z,
-        };
+        return Vector3(x + v.x, y + v.y, z + v.z);
     }
 
     constexpr Vector3 operator-(const Vector3& v) const
     {
-        return {
-            .x = x - v.x,
-            .y = y - v.y,
-            .z = z - v.z,
-        };
+        return Vector3(x - v.x, y - v.y, z - v.z);
     }
 
     constexpr Vector3 operator*(float k) const
     {
-        return {
-            .x = k * x,
-            .y = k * y,
-            .z = k * z,
-        };
+        return Vector3(k * x, k * y, k * z);
     }
 
     static constexpr Vector3 cross(const Vector3& a, const Vector3& b)
     {
-        return {
-            .x = a.y * b.z - a.z * b.y,
-            .y = b.x * a.z - a.x * b.z,
-            .z = a.x * b.y - a.y * b.x,
-        };
+        return Vector3(
+            a.y * b.z - a.z * b.y,
+            b.x * a.z - a.x * b.z,
+            a.x * b.y - a.y * b.x);
     }
 
     void normalize()
@@ -87,11 +86,10 @@ struct Vector3
 template<class T>
 constexpr Vector3<T> operator*(T k, const Vector3<T>& v)
 {
-    return {
-        .x = k * v.x,
-        .y = k * v.y,
-        .z = k * v.z,
-    };
+    return Vector3(
+        k * v.x,
+        k * v.y,
+        k * v.z);
 }
 
 #endif

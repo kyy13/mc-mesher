@@ -4,6 +4,8 @@
 #ifndef MCM_MESH_H
 #define MCM_MESH_H
 
+#include "McmVector.h"
+
 #include <vector>
 
 struct McmMeshBuffer
