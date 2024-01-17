@@ -15,19 +15,15 @@ template<class T, bool WINDING_RHCS_CW, bool EDGE_LERP>
 McmResult mcmGenerateMeshFN(
     McmMeshBuffer* mesh,
     const T* data,
-    const uint32_t _dataSize[3],
-    const uint32_t _meshOrigin[3],
-    const uint32_t _meshSize[3],
+    Vector3<uint32_t> dataSize,
+    Vector3<uint32_t> meshOrigin,
+    Vector3<uint32_t> meshSize,
     T isoLevel)
 {
     if (mesh == nullptr)
     {
         return McmResult::MCM_MESH_BUFFER_IS_NULL;
     }
-
-    Vector3<uint32_t> dataSize(_dataSize);
-    Vector3<uint32_t> meshOrigin(_meshOrigin);
-    Vector3<uint32_t> meshSize(_meshSize);
 
     const Vector3<uint32_t> meshEnd = meshOrigin + meshSize;
 

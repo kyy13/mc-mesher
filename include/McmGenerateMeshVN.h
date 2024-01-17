@@ -15,19 +15,15 @@ template<class T, bool WINDING_RHCS_CW, bool EDGE_LERP>
 McmResult mcmGenerateMeshVN(
     McmMeshBuffer* mesh,
     const T* data,
-    const uint32_t _dataSize[3],
-    const uint32_t _meshOrigin[3],
-    const uint32_t _meshSize[3],
+    Vector3<uint32_t> dataSize,
+    Vector3<uint32_t> meshOrigin,
+    Vector3<uint32_t> meshSize,
     T isoLevel)
 {
     if (mesh == nullptr)
     {
         return McmResult::MCM_MESH_BUFFER_IS_NULL;
     }
-
-    Vector3<uint32_t> dataSize(_dataSize);
-    Vector3<uint32_t> meshOrigin(_meshOrigin);
-    Vector3<uint32_t> meshSize(_meshSize);
 
     const Vector3<uint32_t> meshEnd = meshOrigin + meshSize;
 
@@ -73,14 +69,21 @@ McmResult mcmGenerateMeshVN(
 
     uint32_t x, y, z = meshOrigin.z;
 
-    const Vector3<float> fieldOrigin = Vector3<float>(
-        static_cast<float>(meshOrigin.x),
-        static_cast<float>(meshOrigin.y),
-        static_cast<float>(meshOrigin.z));
+    const Vector3<float> fieldOrigin =
+        {
+            static_cast<float>(meshOrigin.x),
+            static_cast<float>(meshOrigin.y),
+            static_cast<float>(meshOrigin.z),
+        };
 
     Vector3<float> cubeOrigin = fieldOrigin;
 
-    const Vector3<uint32_t> maxCubeIndex = Vector3<uint32_t>(dataSize.x - 2, dataSize.y - 2, dataSize.z - 2);
+    const Vector3<uint32_t> maxCubeIndex =
+        {
+            .x = dataSize.x - 2,
+            .y = dataSize.y - 2,
+            .z = dataSize.z - 2,
+        };
 
     // Memory offset lookup table for cube and adjacent faces
 
@@ -498,23 +501,24 @@ McmResult mcmGenerateMeshVN(
                                     uint32_t ciOver2 = cornerIndex / 2;
 
                                     // Good Luck
-                                    cubeNormals[cornerIndex] = Vector3<float>(
-                                            ((cornerIndex % 2) == 0)
+                                    cubeNormals[cornerIndex] = 
+                                        {
+                                            .x = ((cornerIndex % 2) == 0)
                                                 ? static_cast<float>(*(voxel + memBoundedOffsets[ciOver2])) -
                                                     static_cast<float>(corner[cornerIndex + 1])
                                                 : static_cast<float>(corner[cornerIndex - 1]) -
                                                     static_cast<float>(*(voxel + memBoundedOffsets[ciOver2 + 4])),
-                                            ((ciOver2 % 2) == 0)
+                                            .y = ((ciOver2 % 2) == 0)
                                                 ? static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 8 - ciOver2])) -
                                                     static_cast<float>(corner[cornerIndex + 2])
                                                 : static_cast<float>(corner[cornerIndex - 2]) -
                                                     static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 11 - ciOver2])),
-                                            (cornerIndex < 4)
+                                            .z = (cornerIndex < 4)
                                                 ? static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 16])) -
                                                     static_cast<float>(corner[cornerIndex + 4])
                                                 : static_cast<float>(corner[cornerIndex - 4]) -
-                                                    static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 16]))
-                                        );
+                                                    static_cast<float>(*(voxel + memBoundedOffsets[cornerIndex + 16])),
+                                        };
 
                                     // Normalize
                                     cubeNormals[cornerIndex].normalize();

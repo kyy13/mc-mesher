@@ -1,8 +1,8 @@
 // mc-mesher
 // Kyle J Burgess
 
-#ifndef MCM_MESH_INTERSECT_SEGMENT_H
-#define MCM_MESH_INTERSECT_SEGMENT_H
+#ifndef MCM_MESH_INTERSECT_RAY
+#define MCM_MESH_INTERSECT_RAY
 
 #include "mc_mesher.h"
 #include "McmGeometry.h"
@@ -12,13 +12,9 @@
 #include <limits>
 
 template<class T, bool EDGE_LERP>
-McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T isoLevel, const float _segPos[3], const float _segDir[3], float* d)
+McmResult mcmMeshIntersectRay(const T* data, Vector3<uint32_t> dataSize, T isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, Vector3<float>& pIntersect)
 {
     constexpr float epsilon = 1e-7f;
-
-    Vector3<uint32_t> dataSize(_dataSize);
-    Vector3<float> segPos(_segPos);
-    Vector3<float> segDir(_segDir);
 
     // March ray to AABB if outside entire data set
     const Vector3<float> minB =
@@ -35,8 +31,7 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
             static_cast<float>(dataSize.z - 1),
         };
 
-    float pIntersect[3];
-    if (!mcmRayIntersectAABB(minB, maxB, segPos, segDir, pIntersect))
+    if (!mcmRayIntersectAABB(minB, maxB, rayPos, rayDir, pIntersect))
     {
         return MCM_FAILURE;
     }
@@ -44,15 +39,7 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
     const uint32_t mem_w = dataSize.x;
     const uint32_t mem_wh = dataSize.x * dataSize.y;
 
-    Vector3<float> delta = segPos - Vector3<float>(pIntersect);
-    *d -= delta.magnitude();
-
-    if (*d < 0.0f)
-    {
-        return MCM_FAILURE;
-    }
-
-    segPos = Vector3<float>(pIntersect);
+    rayPos = pIntersect;
 
     /*     p3 ------ p7
      *    /|        /|
@@ -67,23 +54,23 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
     // Find the bounding cube that contains the point
     Vector3<float> min =
         {
-            floorf(segPos.x),
-            floorf(segPos.y),
-            floorf(segPos.z),
+            floorf(rayPos.x),
+            floorf(rayPos.y),
+            floorf(rayPos.z),
         };
 
     Vector3<float> max =
         {
-            ceilf(segPos.x),
-            ceilf(segPos.y),
-            ceilf(segPos.z),
+            ceilf(rayPos.x),
+            ceilf(rayPos.y),
+            ceilf(rayPos.z),
         };
 
     // If the point lies directly on the face, then
     // we want the cube in the same direction as the axis of movement
     if (max.x == min.x)
     {
-        if (segDir.x >= 0.0f)
+        if (rayDir.x >= 0.0f)
             max.x += 1.0f;
         else
             min.x -= 1.0f;
@@ -91,7 +78,7 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
 
     if (max.y == min.y)
     {
-        if (segDir.y >= 0.0f)
+        if (rayDir.y >= 0.0f)
             max.y += 1.0f;
         else
             min.y -= 1.0f;
@@ -99,24 +86,26 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
 
     if (max.z == min.z)
     {
-        if (segDir.z >= 0.0f)
+        if (rayDir.z >= 0.0f)
             max.z += 1.0f;
         else
             min.z -= 1.0f;
     }
 
     // Convert to unsigned, correcting small errors in boundary collision from mcmRayIntersectAABB
-    Vector3<uint32_t> umin = Vector3<uint32_t>(
-            (min.x < 0.0f) ? 0 : static_cast<uint32_t>(min.x),
-            (min.y < 0.0f) ? 0 : static_cast<uint32_t>(min.y),
-            (min.z < 0.0f) ? 0 : static_cast<uint32_t>(min.z));
+    Vector3<uint32_t> umin =
+        {
+            .x = (min.x < 0.0f) ? 0 : static_cast<uint32_t>(min.x),
+            .y = (min.y < 0.0f) ? 0 : static_cast<uint32_t>(min.y),
+            .z = (min.z < 0.0f) ? 0 : static_cast<uint32_t>(min.z),
+        };
 
     if (min.x > static_cast<float>(dataSize.x - 2))
-    { umin.x = dataSize.x - 2; }
+        { umin.x = dataSize.x - 2; }
     if (min.y > static_cast<float>(dataSize.y - 2))
-    { umin.y = dataSize.y - 2; }
+        { umin.y = dataSize.y - 2; }
     if (min.z > static_cast<float>(dataSize.z - 2))
-    { umin.z = dataSize.z - 2; }
+        { umin.z = dataSize.z - 2; }
 
     // Get the origin of the cube, so we can determine the contents of the cube
     uint32_t voxelIndex = umin.x + mem_w * umin.y + mem_wh * umin.z;
@@ -150,14 +139,9 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
             vertices[i + 1] = vertices[i + 1] + min;
             vertices[i + 2] = vertices[i + 2] + min;
 
-            if (mcmRayIntersectTriangle(segPos, segDir, &vertices[i], pIntersect))
+            if (mcmRayIntersectTriangle(rayPos, rayDir, &vertices[i], pIntersect))
             {
-                delta = segPos - pIntersect;
-                *d -= delta.magnitude();
-
-                return (*d >= 0.0f)
-                    ? MCM_SUCCESS
-                    : MCM_FAILURE;
+                return MCM_SUCCESS;
             }
         }
     }
@@ -165,7 +149,7 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
     // Voxel is filled || unfilled || partially filled, but the ray missed all the triangles
 
     // If there is no movement, then we are not going to hit anything in an unfilled box
-    if (segDir.x == 0.0f && segDir.y == 0.0f && segDir.z == 0.0f)
+    if (rayDir.x == 0.0f && rayDir.y == 0.0f && rayDir.z == 0.0f)
     {
         return MCM_FAILURE;
     }
@@ -173,8 +157,8 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
     // Step along ray to find next cube
     float t[3];
 
-    const auto pos = reinterpret_cast<const float*>(&segPos);
-    const auto dir = reinterpret_cast<const float*>(&segDir);
+    const auto pos = reinterpret_cast<const float*>(&rayPos);
+    const auto dir = reinterpret_cast<const float*>(&rayDir);
     const auto pMin = reinterpret_cast<const float*>(&min);
     const auto pMax = reinterpret_cast<const float*>(&max);
 
@@ -201,51 +185,13 @@ McmResult _mcmMeshIntersectSegment(const T* data, const uint32_t _dataSize[3], T
     if (fabsf(t[1]) < fabsf(tMin)) tMin = t[1];
     if (fabsf(t[2]) < fabsf(tMin)) tMin = t[2];
 
-    delta = segPos;
-
     // Query next cubes
     tMin += epsilon;
-    segPos.x += tMin * segDir.x;
-    segPos.y += tMin * segDir.y;
-    segPos.z += tMin * segDir.z;
+    rayPos.x += tMin * rayDir.x;
+    rayPos.y += tMin * rayDir.y;
+    rayPos.z += tMin * rayDir.z;
 
-    delta = delta - segPos;
-    *d -= delta.magnitude();
-
-    if (*d < 0.0f)
-    {
-        return MCM_FAILURE;
-    }
-
-    return _mcmMeshIntersectSegment<T, EDGE_LERP>(data, _dataSize, isoLevel, &segPos.x, _segDir, d);
-}
-
-template<class T, bool EDGE_LERP>
-McmResult mcmMeshIntersectSegment(const T* data, const uint32_t dataSize[3], T isoLevel, const float segPos[3], const float segEnd[3], float pIntersect[3])
-{
-    float delta[3];
-    for (size_t i = 0; i != 3; ++i)
-        delta[i] = segEnd[i] - segPos[i];
-
-    float dTotal = sqrtf(delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2]);
-    float d = dTotal;
-
-    McmResult r = _mcmMeshIntersectSegment<T, EDGE_LERP>(data, dataSize, isoLevel, segPos, delta, &d);
-
-    if (r == MCM_SUCCESS)
-    {
-        if (d >= 0.0f)
-        {
-            float k = (dTotal - d) / dTotal;
-            for (size_t i = 0; i != 3; ++i)
-                pIntersect[i] = segPos[i] + k * delta[i];
-            return MCM_SUCCESS;
-        }
-
-        return MCM_FAILURE;
-    }
-
-    return r;
+    return mcmMeshIntersectRay<T, EDGE_LERP>(data, dataSize, isoLevel, rayPos, rayDir, pIntersect);
 }
 
 #endif

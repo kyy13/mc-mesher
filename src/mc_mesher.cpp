@@ -9,7 +9,6 @@
 #include "McmMeshIntersectSegment.h"
 #include "McmGenerateMeshFN.h"
 #include "McmGenerateMeshVN.h"
-#include "McmVector.h"
 
 #include <stdexcept>
 #include <vector>
@@ -34,9 +33,9 @@ uint32_t mcmCountVertices(const McmMeshBuffer* mesh)
     return mesh->vertices.size();
 }
 
-const float* mcmGetVertices(const McmMeshBuffer* mesh)
+const Vector3<float>* mcmGetVertices(const McmMeshBuffer* mesh)
 {
-    return reinterpret_cast<const float*>(mesh->vertices.data());
+    return mesh->vertices.data();
 }
 
 void mcmCopyVertices(const McmMeshBuffer* mesh, Vector3<float>* dst)
@@ -49,12 +48,12 @@ uint32_t mcmCountNormals(const McmMeshBuffer* mesh)
     return mesh->normals.size();
 }
 
-const float* mcmGetNormals(const McmMeshBuffer* mesh)
+const Vector3<float>* mcmGetNormals(const McmMeshBuffer* mesh)
 {
-    return reinterpret_cast<const float*>(mesh->normals.data());
+    return mesh->normals.data();
 }
 
-void mcmCopyNormals(const McmMeshBuffer* mesh, float* dst)
+void mcmCopyNormals(const McmMeshBuffer* mesh, Vector3<float>* dst)
 {
     memcpy(dst, mesh->normals.data(), mesh->normals.size() * sizeof(Vector3<float>));
 }
@@ -74,9 +73,10 @@ void mcmCopyIndices(const McmMeshBuffer* mesh, uint32_t* dst)
     memcpy(dst, mesh->indices.data(), mesh->indices.size() * sizeof(uint32_t));
 }
 
-McmResult mcmGenerateMesh(McmMeshBuffer* meshBuffer, const float* data, const uint32_t dataSize[3], const uint32_t meshOrigin[3], const uint32_t meshSize[3], float isoLevel, McmFlags flags)
+McmResult mcmGenerateMesh(McmMeshBuffer* meshBuffer, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, float isoLevel, McmFlags flags)
 {
     // Pick and generate template functions from flags
+
     if ((flags & MCM_FACE_NORMALS) == 0)
     {
         // Vertex Normals
@@ -143,7 +143,7 @@ McmResult mcmGenerateMesh(McmMeshBuffer* meshBuffer, const float* data, const ui
     }
 }
 
-McmResult mcmMeshContainsPoint(const float* data, const uint32_t dataSize[3], float isoLevel, const float point[3], McmFlags flags)
+McmResult mcmMeshContainsPoint(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> point, McmFlags flags)
 {
     if ((flags & MCM_EDGE_CENTER) == 0)
     {
@@ -157,7 +157,7 @@ McmResult mcmMeshContainsPoint(const float* data, const uint32_t dataSize[3], fl
     }
 }
 
-McmResult mcmMeshIntersectRay(const float* data, const uint32_t dataSize[3], float isoLevel, const float rayPos[3], const float rayDir[3], McmFlags flags, float pIntersect[3])
+McmResult mcmMeshIntersectRay(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> rayPos, Vector3<float> rayDir, McmFlags flags, Vector3<float>& pIntersect)
 {
     if ((flags & MCM_EDGE_CENTER) == 0)
     {
@@ -171,7 +171,7 @@ McmResult mcmMeshIntersectRay(const float* data, const uint32_t dataSize[3], flo
     }
 }
 
-McmResult mcmMeshIntersectSegment(const float* data, const uint32_t dataSize[3], float isoLevel, const float segPos[3], const float segEnd[3], McmFlags flags, float pIntersect[3])
+McmResult mcmMeshIntersectSegment(const float* data, Vector3<uint32_t> dataSize, float isoLevel, Vector3<float> segPos, Vector3<float> segEnd, McmFlags flags, Vector3<float>& pIntersect)
 {
     if ((flags & MCM_EDGE_CENTER) == 0)
     {

@@ -41,36 +41,36 @@ float GetValue(size_t x, size_t y, size_t z)
 
 int main()
 {
-    const uint32_t dataSize[3] =
+    const Vector3<uint32_t> dataSize =
         {
-            32,
-            32,
-            32,
+            .x = 32,
+            .y = 32,
+            .z = 32,
         };
 
-    const uint32_t meshOrigin[3] =
+    const Vector3<uint32_t> meshOrigin =
         {
-            0,
-            0,
-            0,
+            .x = 0,
+            .y = 0,
+            .z = 0,
         };
 
-    const uint32_t meshSize[3] =
+    const Vector3<uint32_t> meshSize =
         {
-            dataSize[0]- 1,
-            dataSize[1] - 1,
-            dataSize[2] - 1,
+            .x = dataSize.x - 1,
+            .y = dataSize.y - 1,
+            .z = dataSize.z - 1,
         };
 
-    std::vector<float> scalarField(dataSize[0] * dataSize[1] * dataSize[2]);
+    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
 
-    for (size_t z = 0; z != dataSize[2]; ++z)
+    for (size_t z = 0; z != dataSize.z; ++z)
     {
-        for (size_t y = 0; y != dataSize[1]; ++y)
+        for (size_t y = 0; y != dataSize.y; ++y)
         {
-            for (size_t x = 0; x != dataSize[0]; ++x)
+            for (size_t x = 0; x != dataSize.x; ++x)
             {
-                size_t i = x + dataSize[0] * (y + dataSize[1] * z);
+                size_t i = x + dataSize.x * (y + dataSize.y * z);
 
                 scalarField[i] = GetValue(x, y, z);
             }
@@ -93,12 +93,12 @@ int main()
     {
         for (uint32_t j = i + 1; j != vertexCount; ++j)
         {
-            const float* a = &vertexBuffer[i * 3];
-            const float* b = &vertexBuffer[j * 3];
+            const auto& a = vertexBuffer[i];
+            const auto& b = vertexBuffer[j];
 
-            if (fabsf(a[0] - b[0]) < epsilon &&
-                fabsf(a[1] - b[1]) < epsilon &&
-                fabsf(a[2] - b[2]) < epsilon)
+            if (fabsf(a.x - b.x) < epsilon &&
+                fabsf(a.y - b.y) < epsilon &&
+                fabsf(a.z - b.z) < epsilon)
             {
                 return -1;
             }

@@ -38,36 +38,36 @@ float GetValue(size_t x, size_t y, size_t z)
 
 int main()
 {
-    const uint32_t dataSize[3] =
+    const Vector3<uint32_t> dataSize =
         {
-            32,
-            32,
-            32,
+            .x = 32,
+            .y = 32,
+            .z = 32,
         };
 
-    const uint32_t meshOrigin[3] =
+    const Vector3<uint32_t> meshOrigin =
         {
-            2,
-            2,
-            2,
+            .x = 2,
+            .y = 2,
+            .z = 2,
         };
 
-    const uint32_t meshSize[3] =
+    const Vector3<uint32_t> meshSize =
         {
-            dataSize[0] - 5,
-            dataSize[1] - 5,
-            dataSize[2] - 5,
+            .x = dataSize.x - 5,
+            .y = dataSize.y - 5,
+            .z = dataSize.z - 5,
         };
 
-    std::vector<float> scalarField(dataSize[0] * dataSize[1] * dataSize[2]);
+    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
 
-    for (size_t z = 0; z != dataSize[2]; ++z)
+    for (size_t z = 0; z != dataSize.z; ++z)
     {
-        for (size_t y = 0; y != dataSize[1]; ++y)
+        for (size_t y = 0; y != dataSize.y; ++y)
         {
-            for (size_t x = 0; x != dataSize[0]; ++x)
+            for (size_t x = 0; x != dataSize.x; ++x)
             {
-                size_t i = x + dataSize[0] * (y + dataSize[1] * z);
+                size_t i = x + dataSize.x * (y + dataSize.y * z);
 
                 scalarField[i] = GetValue(x, y, z);
             }
@@ -100,16 +100,16 @@ int main()
     std::vector<uint32_t> indicesC;
     std::vector<Vector3<float>> verticesC;
 
-    uint32_t mem_w = dataSize[0];
-    uint32_t mem_wh = dataSize[0] * dataSize[1];
+    uint32_t mem_w = dataSize.x;
+    uint32_t mem_wh = dataSize.x * dataSize.y;
 
-    for (uint32_t z = meshOrigin[2]; z != meshOrigin[2] + meshSize[2]; ++z)
+    for (uint32_t z = meshOrigin.z; z != meshOrigin.z + meshSize.z; ++z)
     {
-        for (uint32_t y = meshOrigin[1]; y != meshOrigin[1] + meshSize[1]; ++y)
+        for (uint32_t y = meshOrigin.y; y != meshOrigin.y + meshSize.y; ++y)
         {
-            for (uint32_t x = meshOrigin[0]; x != meshOrigin[0] + meshSize[0]; ++x)
+            for (uint32_t x = meshOrigin.x; x != meshOrigin.x + meshSize.x; ++x)
             {
-                uint32_t i = x + dataSize[0] * (y + dataSize[1] * z);
+                uint32_t i = x + dataSize.x * (y + dataSize.y * z);
 
                 float* voxel = &scalarField[i];
 
@@ -135,10 +135,12 @@ int main()
                 {
                     indicesC.push_back(verticesC.size());
 
-                    Vector3<float> v = Vector3<float>(
-                            vOut[m].x + static_cast<float>(x),
-                            vOut[m].y + static_cast<float>(y),
-                            vOut[m].z + static_cast<float>(z));
+                    Vector3<float> v =
+                        {
+                            .x = vOut[m].x + static_cast<float>(x),
+                            .y = vOut[m].y + static_cast<float>(y),
+                            .z = vOut[m].z + static_cast<float>(z),
+                        };
 
                     verticesC.push_back(v);
                 }
@@ -200,18 +202,18 @@ int main()
 
         constexpr float epsilon = 0.00001f;
 
-        auto dx = fabsf(verticesA[3*indexA + 0] - verticesB[3*indexB + 0]);
-        auto dy = fabsf(verticesA[3*indexA + 1] - verticesB[3*indexB + 1]);
-        auto dz = fabsf(verticesA[3*indexA + 2] - verticesB[3*indexB + 2]);
+        auto dx = fabsf(verticesA[indexA].x - verticesB[indexB].x);
+        auto dy = fabsf(verticesA[indexA].y - verticesB[indexB].y);
+        auto dz = fabsf(verticesA[indexA].z - verticesB[indexB].z);
 
         if (!(dx < epsilon && dy < epsilon && dz < epsilon))
         {
             return -1;
         }
 
-        dx = fabsf(verticesA[3*indexA + 0] - verticesC[indexC].x);
-        dy = fabsf(verticesA[3*indexA + 1] - verticesC[indexC].y);
-        dz = fabsf(verticesA[3*indexA + 2] - verticesC[indexC].z);
+        dx = fabsf(verticesA[indexA].x - verticesC[indexC].x);
+        dy = fabsf(verticesA[indexA].y - verticesC[indexC].y);
+        dz = fabsf(verticesA[indexA].z - verticesC[indexC].z);
 
         if (!(dx < epsilon && dy < epsilon && dz < epsilon))
         {

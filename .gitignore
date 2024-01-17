@@ -3,4 +3,3 @@ build/
 cmake-build-debug/
 wrappers/godot/ext/
 *.dll
-.vscode

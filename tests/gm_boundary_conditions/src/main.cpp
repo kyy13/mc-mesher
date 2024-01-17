@@ -6,19 +6,24 @@
 #include <functional>
 #include <vector>
 
-typedef McmResult (*GenerateMesh)(const uint32_t* meshOrigin, const uint32_t* meshSize, McmFlags flags);
+using GenerateMeshFn = std::function<McmResult(const Vector3<uint32_t>&, const Vector3<uint32_t>&, McmFlags flags)>;
 
-int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags flags, GenerateMesh fn)
+int TestBoundaries(McmMeshBuffer* mesh, const Vector3<uint32_t>& dataSize, McmFlags flags, const GenerateMeshFn& fn)
 {
     // Test: entire mesh successfully generates
 
-    uint32_t meshOrigin[3] = {0, 0, 0};
-
-    uint32_t meshSize[3] =
+    Vector3<uint32_t> meshOrigin =
         {
-            dataSize[0] - 1,
-            dataSize[1] - 1,
-            dataSize[2] - 1,
+            .x = 0,
+            .y = 0,
+            .z = 0,
+        };
+
+    Vector3<uint32_t> meshSize =
+        {
+            .x = dataSize.x - 1,
+            .y = dataSize.y - 1,
+            .z = dataSize.z - 1,
         };
 
     auto result = fn(meshOrigin, meshSize, flags);
@@ -30,7 +35,7 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
 
     // Test: Mesh size causes x to go out of x boundary
 
-    meshSize[0] = dataSize[0];
+    meshSize.x = dataSize.x;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -39,11 +44,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshSize[0] = dataSize[0] - 1;
+    meshSize.x = dataSize.x - 1;
 
     // Test: Mesh size causes y to go out of y boundary
 
-    meshSize[1] = dataSize[1];
+    meshSize.y = dataSize.y;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -52,11 +57,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshSize[1] = dataSize[1] - 1;
+    meshSize.y = dataSize.y - 1;
 
     // Test: Mesh size causes z to go out of z boundary
 
-    meshSize[2] = dataSize[2];
+    meshSize.z = dataSize.z;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -65,11 +70,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshSize[2] = dataSize[2] - 1;
+    meshSize.z = dataSize.z - 1;
 
     // Test: Mesh origin causes x to go out of x boundary
 
-    meshOrigin[0] = 1;
+    meshOrigin.x = 1;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -78,11 +83,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshOrigin[0] = 0;
+    meshOrigin.x = 0;
 
     // Test: Mesh size causes y to go out of y boundary
 
-    meshOrigin[1] = 1;
+    meshOrigin.y = 1;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -91,11 +96,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshOrigin[1] = 0;
+    meshOrigin.y = 0;
 
     // Test: Mesh size causes z to go out of z boundary
 
-    meshOrigin[2] = 1;
+    meshOrigin.z = 1;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -104,11 +109,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshOrigin[2] = 0;
+    meshOrigin.z = 0;
 
     // Test: Mesh of 0 size (x)
 
-    meshSize[0] = 0;
+    meshSize.x = 0;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -121,11 +126,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshSize[0] = dataSize[0] - 1;
+    meshSize.x = dataSize.x - 1;
 
     // Test: Mesh of 0 size (y)
 
-    meshSize[1] = 0;
+    meshSize.y = 0;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -138,11 +143,11 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshSize[1] = dataSize[1] - 1;
+    meshSize.y = dataSize.y - 1;
 
     // Test: Mesh of 0 size (z)
 
-    meshSize[2] = 0;
+    meshSize.z = 0;
 
     result = fn(meshOrigin, meshSize, flags);
 
@@ -155,55 +160,47 @@ int TestBoundaries(McmMeshBuffer* mesh, const uint32_t dataSize[3], McmFlags fla
         return -1;
     }
 
-    meshSize[2] = dataSize[2] - 1;
+    meshSize.z = dataSize.z - 1;
 
     // Test passes
 
     return 0;
 }
 
-McmMeshBuffer* mesh;
-
-const uint32_t dataSize[3] =
-    {
-        16,
-        16,
-        16,
-    };
-
-std::vector<float> scalarField;
-
-McmResult genMesh(const uint32_t* meshOrigin, const uint32_t* meshSize, McmFlags flags)
-{
-    return mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, flags);
-}
-
 int main()
 {
     // Create Mesh
-    mesh = mcmCreateMeshBuffer();
+
+    auto mesh = mcmCreateMeshBuffer();
 
     // Create scalar field
-    const uint32_t dataSize[3] =
+
+    const Vector3<uint32_t> dataSize =
         {
-            16,
-            16,
-            16,
+            .x = 16,
+            .y = 16,
+            .z = 16,
         };
 
-    scalarField.resize(dataSize[0] * dataSize[1] * dataSize[2]);
+    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
 
-    for (uint32_t z = 0; z != dataSize[2]; ++z)
+    std::vector<uint8_t> scalarField_U8(dataSize.x * dataSize.y * dataSize.z);
+
+    for (uint32_t z = 0; z != dataSize.z; ++z)
     {
-        for (uint32_t y = 0; y != dataSize[1]; ++y)
+        for (uint32_t y = 0; y != dataSize.y; ++y)
         {
-            for (uint32_t x = 0; x != dataSize[0]; ++x)
+            for (uint32_t x = 0; x != dataSize.x; ++x)
             {
-                size_t i = x + dataSize[0] * (y + dataSize[1] * z);
+                size_t i = x + dataSize.x * (y + dataSize.y * z);
 
-                scalarField[i] = (x < (dataSize[0]/2))
+                scalarField[i] = (x < (dataSize.x/2))
                     ? 0.0f
                     : 1.0f;
+
+                scalarField_U8[i] = (x < (dataSize.x/2))
+                    ? 0
+                    : 255;
             }
         }
     }
@@ -213,32 +210,61 @@ int main()
     for (int flags = 0; flags != fullFlags; ++flags)
     {
         // Test Generating Float meshes
-        auto result = TestBoundaries(mesh, dataSize, flags, &genMesh);
+
+        auto result = TestBoundaries(mesh, dataSize, flags, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize, McmFlags flags)
+        {
+            return mcmGenerateMesh(mesh, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, flags);
+        });
 
         if (result != 0)
         {
             return result;
         }
 
-        // Test NULL mesh buffers
-        const uint32_t meshOrigin[3] = {0, 0, 0};
+        // Test Generating U8 meshes
 
-        const uint32_t meshSize[3] =
+//        result = TestBoundaries(mesh, dataSize, flags, [&](const Vector3<uint32_t>& meshOrigin, const Vector3<uint32_t>& meshSize, McmFlags flags)
+//        {
+//            return mcmGenerateMesh_U8(mesh, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags);
+//        });
+//
+//        if (result != 0)
+//        {
+//            return result;
+//        }
+
+        // Test NULL mesh buffers
+
+        const Vector3<uint32_t> meshOrigin =
             {
-                dataSize[0] - 1,
-                dataSize[1] - 1,
-                dataSize[2] - 1,
+                .x = 0,
+                .y = 0,
+                .z = 0,
+            };
+
+        const Vector3<uint32_t> meshSize =
+            {
+                .x = dataSize.x - 1,
+                .y = dataSize.y - 1,
+                .z = dataSize.z - 1,
             };
 
         if (mcmGenerateMesh(nullptr, scalarField.data(), dataSize, meshOrigin, meshSize, 0.5f, flags) != McmResult::MCM_MESH_BUFFER_IS_NULL)
         {
             return -1;
         }
+
+//        if (mcmGenerateMesh_U8(nullptr, scalarField_U8.data(), dataSize, meshOrigin, meshSize, 127, flags) != McmResult::MCM_MESH_BUFFER_IS_NULL)
+//        {
+//            return -1;
+//        }
     }
 
     // Clean up mesh
+
     mcmDeleteMeshBuffer(mesh);
 
     // Test passes
+
     return 0;
 }

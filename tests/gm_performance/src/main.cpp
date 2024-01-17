@@ -38,7 +38,7 @@ float GetValue(size_t x, size_t y, size_t z)
     }
 }
 
-float TestGenerateMesh(McmMeshBuffer* mesh, const float* data, const uint32_t dataSize[3], const uint32_t meshOrigin[3], const uint32_t meshSize[3], McmFlag flags)
+float TestGenerateMesh(McmMeshBuffer* mesh, const float* data, Vector3<uint32_t> dataSize, Vector3<uint32_t> meshOrigin, Vector3<uint32_t> meshSize, McmFlag flags)
 {
     constexpr float twoOver256 = 2.0f / 256.0f;
     constexpr float secPerClock = 1.0f / static_cast<float>(CLOCKS_PER_SEC);
@@ -66,38 +66,37 @@ float TestGenerateMesh(McmMeshBuffer* mesh, const float* data, const uint32_t da
 
 int main()
 {
-    const uint32_t dataSize[3] =
+    const Vector3<uint32_t> dataSize =
         {
-            128,
-            128,
-            128,
+            .x = 128,
+            .y = 128,
+            .z = 128,
         };
 
-    const uint32_t meshOrigin[3] =
+    const Vector3<uint32_t> meshOrigin =
         {
-            0,
-            0,
-            0,
+            .x = 0,
+            .y = 0,
+            .z = 0,
         };
 
-    const uint32_t meshSize[3] =
+    const Vector3<uint32_t> meshSize =
         {
-            dataSize[0] - 1,
-            dataSize[1] - 1,
-            dataSize[2] - 1,
+            .x = dataSize.x - 1,
+            .y = dataSize.y - 1,
+            .z = dataSize.z - 1,
         };
 
     std::cout << "generating noise...\n";
 
-    std::vector<float> scalarField(dataSize[0] * dataSize[1] * dataSize[2]);
-
-    for (size_t z = 0; z != dataSize[2]; ++z)
+    std::vector<float> scalarField(dataSize.x * dataSize.y * dataSize.z);
+    for (size_t z = 0; z != dataSize.z; ++z)
     {
-        for (size_t y = 0; y != dataSize[1]; ++y)
+        for (size_t y = 0; y != dataSize.y; ++y)
         {
-            for (size_t x = 0; x != dataSize[0]; ++x)
+            for (size_t x = 0; x != dataSize.x; ++x)
             {
-                size_t i = x + dataSize[0] * (y + dataSize[1] * z);
+                size_t i = x + dataSize.x * (y + dataSize.y * z);
 
                 scalarField[i] = GetValue(x, y, z);
             }
