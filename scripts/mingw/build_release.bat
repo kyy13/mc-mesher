@@ -1,4 +1,4 @@
-cd ..
+cd ../..
 mkdir build
 cd build
 mkdir Release
