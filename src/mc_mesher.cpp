@@ -39,9 +39,9 @@ const float* mcmGetVertices(const McmMeshBuffer* mesh)
     return reinterpret_cast<const float*>(mesh->vertices.data());
 }
 
-void mcmCopyVertices(const McmMeshBuffer* mesh, Vector3<float>* dst)
+void mcmCopyVertices(const McmMeshBuffer* mesh, float* dst)
 {
-    memcpy(dst, mesh->vertices.data(), mesh->vertices.size() * sizeof(Vector3<float>));
+    memcpy(dst, mesh->vertices.data(), mesh->vertices.size() * 3 * sizeof(float));
 }
 
 uint32_t mcmCountNormals(const McmMeshBuffer* mesh)
