@@ -51,7 +51,14 @@ public class McmMeshBuffer : IDisposable
         float isoLevel,
         McmFlag flags = 0)
     {
-        McmResult r = McmGenerateMesh(m_meshBuffer, voxelData, dataSize, meshOrigin, meshSize, isoLevel, flags);
+        McmResult r = McmGenerateMesh(
+            m_meshBuffer,
+            voxelData,
+            ConvertUInt32Array(dataSize),
+            ConvertUInt32Array(meshOrigin),
+            ConvertUInt32Array(meshSize),
+            isoLevel,
+            flags);
 
         if (r != McmResult.MCM_SUCCESS)
         {
@@ -70,7 +77,14 @@ public class McmMeshBuffer : IDisposable
         float isoLevel,
         McmFlag flags = 0)
     {
-        McmResult r = McmGenerateMesh(m_meshBuffer, voxelData, dataSize, meshOrigin, meshSize, isoLevel, flags);
+        McmResult r = McmGenerateMesh(
+            m_meshBuffer,
+            voxelData,
+            ConvertUInt32Array(dataSize),
+            ConvertUInt32Array(meshOrigin),
+            ConvertUInt32Array(meshSize),
+            isoLevel,
+            flags);
 
         if (r != McmResult.MCM_SUCCESS)
         {
@@ -85,23 +99,23 @@ public class McmMeshBuffer : IDisposable
     // otherwise, mcmMeshContainsPoint returns MCM_FAILURE
     public static bool MeshContainsPoint(float[] data, Vector3u dataSize, float isoLevel, Vector3 point, McmFlag flags)
     {
-        return McmMeshContainsPoint(data, dataSize, isoLevel, point, flags) == McmResult.MCM_SUCCESS;
+        return McmMeshContainsPoint(data, ConvertUInt32Array(dataSize), isoLevel, ConvertFloat32Array(point), flags) == McmResult.MCM_SUCCESS;
     }
 
     public static bool MeshContainsPoint(float[,,] data, Vector3u dataSize, float isoLevel, Vector3 point, McmFlag flags)
     {
-        return McmMeshContainsPoint(data, dataSize, isoLevel, point, flags) == McmResult.MCM_SUCCESS;
+        return McmMeshContainsPoint(data, ConvertUInt32Array(dataSize), isoLevel, ConvertFloat32Array(point), flags) == McmResult.MCM_SUCCESS;
     }
 
     // Intersect a scalar field of floats with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
     // If an intersection occurs, then returns the point of intersection, otherwise returns null
     public static Vector3? MeshIntersectRay(float[] data, Vector3u dataSize, float isoLevel, Vector3 rayPos, Vector3 rayDir, McmFlag flags)
     {
-        Vector3 pIntersect;
+        float[] pIntersect = new float[3];
 
-        if (McmMeshIntersectRay(data, dataSize, isoLevel, rayPos, rayDir, flags, out pIntersect) == McmResult.MCM_SUCCESS)
+        if (McmMeshIntersectRay(data, ConvertUInt32Array(dataSize), isoLevel, ConvertFloat32Array(rayPos), ConvertFloat32Array(rayDir), flags, out pIntersect) == McmResult.MCM_SUCCESS)
         {
-            return pIntersect;
+            return new Vector3(pIntersect[0], pIntersect[1], pIntersect[2]);
         }
 
         return null;
@@ -109,11 +123,11 @@ public class McmMeshBuffer : IDisposable
 
     public static Vector3? MeshIntersectRay(float[,,] data, Vector3u dataSize, float isoLevel, Vector3 rayPos, Vector3 rayDir, McmFlag flags)
     {
-        Vector3 pIntersect;
+        float[] pIntersect = new float[3];
 
-        if (McmMeshIntersectRay(data, dataSize, isoLevel, rayPos, rayDir, flags, out pIntersect) == McmResult.MCM_SUCCESS)
+        if (McmMeshIntersectRay(data, ConvertUInt32Array(dataSize), isoLevel, ConvertFloat32Array(rayPos), ConvertFloat32Array(rayDir), flags, out pIntersect) == McmResult.MCM_SUCCESS)
         {
-            return pIntersect;
+            return new Vector3(pIntersect[0], pIntersect[1], pIntersect[2]);
         }
 
         return null;
@@ -124,11 +138,11 @@ public class McmMeshBuffer : IDisposable
     // otherwise, mcmMeshIntersectSegment returns MCM_FAILURE
     public static Vector3? MeshIntersectSegment(float[] data, Vector3u dataSize, float isoLevel, Vector3 segPos, Vector3 segEnd, McmFlag flags)
     {
-        Vector3 pIntersect;
+        float[] pIntersect = new float[3];
 
-        if (McmMeshIntersectSegment(data, dataSize, isoLevel, segPos, segEnd, flags, out pIntersect) == McmResult.MCM_SUCCESS)
+        if (McmMeshIntersectSegment(data, ConvertUInt32Array(dataSize), isoLevel, ConvertFloat32Array(segPos), ConvertFloat32Array(segEnd), flags, out pIntersect) == McmResult.MCM_SUCCESS)
         {
-            return pIntersect;
+            return new Vector3(pIntersect[0], pIntersect[1], pIntersect[2]);
         }
 
         return null;
@@ -202,6 +216,28 @@ public class McmMeshBuffer : IDisposable
         }
     }
 
+    protected static UInt32[] ConvertUInt32Array(Vector3u vec)
+    {
+        UInt32[] arr = new UInt32[3];
+
+        arr[0] = vec.x;
+        arr[1] = vec.y;
+        arr[2] = vec.z;
+
+        return arr;
+    }
+
+    protected static float[] ConvertFloat32Array(Vector3 vec)
+    {
+        float[] arr = new float[3];
+
+        arr[0] = vec.x;
+        arr[1] = vec.y;
+        arr[2] = vec.z;
+
+        return arr;
+    }
+
     protected IntPtr m_meshBuffer;
 
     protected bool m_disposed = false;
@@ -230,141 +266,51 @@ public class McmMeshBuffer : IDisposable
         MCM_OUT_OF_BOUNDS_Z                 = 5,            // Error, an argument passed to the function was out of bounds in the z-axis
     };
 
-    // Create an McmMeshBuffer and return its handle (pointer)
     [DllImport("libmcmesher", EntryPoint = "mcmCreateMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern IntPtr      McmCreateMeshBuffer();
+    protected static extern IntPtr McmCreateMeshBuffer();
 
-    // Delete an McmMeshBuffer, invalidating the handle
     [DllImport("libmcmesher", EntryPoint = "mcmDeleteMeshBuffer", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern void        McmDeleteMeshBuffer(
-        IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
+    protected static extern void McmDeleteMeshBuffer(IntPtr meshBuffer);
 
-    // Generate a marching cubes mesh with vertex normals, and store the results in an McmMeshBuffer
     [DllImport("libmcmesher", EntryPoint = "mcmGenerateMesh", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmGenerateMesh(
-        IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
-        float[]                             data,           // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                            dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        Vector3u                            meshOrigin,     // Origin of the mesh to generate (in cubes) within the 3D field
-        Vector3u                            meshSize,       // Size of the mesh to generate (in cubes) within the 3D field
-        float                               isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        McmFlag                             flags);
+    protected static extern McmResult McmGenerateMesh(IntPtr meshBuffer, float[] data, UInt32[] dataSize, UInt32[] meshOrigin, UInt32[] meshSize, float isoLevel, McmFlag flags);
 
-    // Generate a marching cubes mesh with vertex normals, and store the results in an McmMeshBuffer
     [DllImport("libmcmesher", EntryPoint = "mcmGenerateMesh", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmGenerateMesh(
-        IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
-        float[,,]                           data,           // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                            dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        Vector3u                            meshOrigin,     // Origin of the mesh to generate (in cubes) within the 3D field
-        Vector3u                            meshSize,       // Size of the mesh to generate (in cubes) within the 3D field
-        float                               isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        McmFlag                             flags);         // Mesh generation flags
+    protected static extern McmResult McmGenerateMesh(IntPtr meshBuffer, float[,,] data, UInt32[] dataSize, UInt32[] meshOrigin, UInt32[] meshSize, float isoLevel, McmFlag flags);
 
-    // Determine if a scalar field of floats contains a point (the mesh does not need to be generated)
-    // If the mesh contains the point, then mcmMeshContainsPoint returns MCM_SUCCESS
-    // otherwise, mcmMeshContainsPoint returns MCM_FAILURE
     [DllImport("libmcmesher", EntryPoint = "mcmMeshContainsPoint", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmMeshContainsPoint(
-        float[]                       data,                 // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                      dataSize,             // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        Vector3                       point,                // The point to check
-        McmFlag                       flags);               // Mesh generation flags
+    protected static extern McmResult McmMeshContainsPoint(float[] data, UInt32[] dataSize, float isoLevel, float[] point, McmFlag flags); 
 
-    // Determine if a scalar field of floats contains a point (the mesh does not need to be generated)
-    // If the mesh contains the point, then mcmMeshContainsPoint returns MCM_SUCCESS
-    // otherwise, mcmMeshContainsPoint returns MCM_FAILURE
     [DllImport("libmcmesher", EntryPoint = "mcmMeshContainsPoint", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmMeshContainsPoint(
-        float[,,]                     data,                 // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                      dataSize,             // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        Vector3                       point,                // The point to check
-        McmFlag                       flags);               // Mesh generation flags
+    protected static extern McmResult McmMeshContainsPoint(float[,,] data, UInt32[] dataSize, float isoLevel, float[] point, McmFlag flags);
 
-    // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
-    // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
-    // otherwise, mcmRayIntersectMesh returns MCM_FAILURE
     [DllImport("libmcmesher", EntryPoint = "mcmMeshIntersectRay", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmMeshIntersectRay(
-        float[]                             data,           // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                            dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        float                               isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        Vector3                             rayPos,         // Starting point of the ray
-        Vector3                             rayDir,         // Direction of the ray (does not need to be normalized)
-        McmFlag                             flags,          // Mesh generation flags
-        out Vector3                         pIntersect);    // The point of intersection if an intersection occurred
+    protected static extern McmResult McmMeshIntersectRay(float[] data, UInt32[] dataSize, float isoLevel, float[] rayPos, float[] rayDir, McmFlag flags, out float[] pIntersect);
 
-    // Intersect a scalar field with a ray (gives the same results as mesh-ray intersection except faster, and the mesh does not need to be generated)
-    // If an intersection occurs, then mcmRayIntersectMesh returns MCM_SUCCESS, and the point of intersection is set,
-    // otherwise, mcmRayIntersectMesh returns MCM_FAILURE
     [DllImport("libmcmesher", EntryPoint = "mcmMeshIntersectRay", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmMeshIntersectRay(
-        float[,,]                           data,           // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                            dataSize,       // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        float                               isoLevel,       // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        Vector3                             rayPos,         // Starting point of the ray
-        Vector3                             rayDir,         // Direction of the ray (does not need to be normalized)
-        McmFlag                             flags,          // Mesh generation flags
-        out Vector3                         pIntersect);    // The point of intersection if an intersection occurred
+    protected static extern McmResult McmMeshIntersectRay(float[,,] data, UInt32[] dataSize, float isoLevel, float[] rayPos, float[] rayDir, McmFlag flags, out float[] pIntersect);
 
-    // Intersect a scalar field of floats with a segment (gives the same results as mesh-segment intersection except faster, and the mesh does not need to be generated)
-    // If an intersection occurs, then mcmMeshIntersectSegment returns MCM_SUCCESS, and the point of intersection is set,
-    // otherwise, mcmMeshIntersectSegment returns MCM_FAILURE
     [DllImport("libmcmesher", EntryPoint = "mcmMeshIntersectSegment", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmMeshIntersectSegment(
-        float[]                       data,                 // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                      dataSize,             // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        Vector3                       segPos,               // Starting point of the segment
-        Vector3                       segEnd,               // End point of the segment
-        McmFlag                       flags,                // Mesh generation flags
-        out Vector3                   pIntersect);          // The point of intersection if an intersection occurred
+    protected static extern McmResult McmMeshIntersectSegment(float[] data, UInt32[] dataSize, float isoLevel, float[] segPos, float[] segEnd, McmFlag flags, out float[] pIntersect);
 
-    // Intersect a scalar field of floats with a segment (gives the same results as mesh-segment intersection except faster, and the mesh does not need to be generated)
-    // If an intersection occurs, then mcmMeshIntersectSegment returns MCM_SUCCESS, and the point of intersection is set,
-    // otherwise, mcmMeshIntersectSegment returns MCM_FAILURE
     [DllImport("libmcmesher", EntryPoint = "mcmMeshIntersectSegment", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern McmResult   McmMeshIntersectSegment(
-        float[,,]                     data,                 // 3D field of scalar floating-point values as a contiguous array
-        Vector3u                      dataSize,             // Size of 3D field x, y, and z axis (in vertices) where field array length is x * y * z
-        float                         isoLevel,             // The ISO level for the surface (under ISO = inside the volume, over ISO = outside the volume)
-        Vector3                       segPos,               // Starting point of the segment
-        Vector3                       segEnd,               // End point of the segment
-        McmFlag                       flags,                // Mesh generation flags
-        out Vector3                   pIntersect);          // The point of intersection if an intersection occurred
+    protected static extern McmResult McmMeshIntersectSegment(float[,,] data, UInt32[] dataSize, float isoLevel, float[] segPos, float[] segEnd, McmFlag flags, out float[] pIntersect);
 
-    // Count the number of vertices in the mesh
     [DllImport("libmcmesher", EntryPoint = "mcmCountVertices", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern uint        McmCountVertices(
-        IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
+    protected static extern UInt32 McmCountVertices(IntPtr meshBuffer);
 
-    // Copies vertices into a buffer
     [DllImport("libmcmesher", EntryPoint = "mcmCopyVertices", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern unsafe void McmCopyVertices(
-        IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
-        void*                               dstBuffer);     // Destination buffer of Vector3<float> (allocated size must be >= mcmCountVertices(meshBuffer))
+    protected static extern unsafe void McmCopyVertices(IntPtr meshBuffer, void* dstBuffer);
 
-    // Count the number of normals in the mesh
     [DllImport("libmcmesher", EntryPoint = "mcmCountNormals", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern uint        McmCountNormals(
-        IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
+    protected static extern UInt32 McmCountNormals(IntPtr meshBuffer);
 
-    // Copies normals into a buffer
     [DllImport("libmcmesher", EntryPoint = "mcmCopyNormals", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern unsafe void McmCopyNormals(
-        IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
-        void*                               dstBuffer);     // Destination buffer of Vector3<float> (allocated size must be >= mcmCountNormals(meshBuffer))
+    protected static extern unsafe void McmCopyNormals(IntPtr meshBuffer, void* dstBuffer);
 
-    // Count the number of indices in the mesh
     [DllImport("libmcmesher", EntryPoint = "mcmCountIndices", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern uint        McmCountIndices(
-        IntPtr                              meshBuffer);    // Handle to a valid mcmMeshBuffer object
+    protected static extern uint McmCountIndices(IntPtr meshBuffer);
 
-    // Copies indices into a buffer
     [DllImport("libmcmesher", EntryPoint = "mcmCopyIndices", CallingConvention = CallingConvention.Cdecl)]
-    protected static extern unsafe void McmCopyIndices(
-        IntPtr                              meshBuffer,     // Handle to a valid mcmMeshBuffer object
-        void*                               dstBuffer);     // Destination buffer of unsigned 32-bit integers (allocated size must be >= mcmCountIndices(meshBuffer))
+    protected static extern unsafe void McmCopyIndices(IntPtr meshBuffer, void* dstBuffer);
 }
