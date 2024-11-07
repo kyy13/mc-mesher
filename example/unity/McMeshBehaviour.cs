@@ -1,5 +1,6 @@
 // mc-mesher MonoBehaviour example
-// Attach this script to a GameObject with a MeshFilter component.
+// Attach this script to a GameObject with a MeshFilter and MeshRenderer component.
+// Alternatively, you can use a built-in mesh like a Cube instead, which already has a MeshFilter and configured MeshRender.
 // NOTE:
 //  -Follow the build/quick-start instructions in the README.md, your Assets folder should have mc_mesher.cs and libmcmesher.dll
 //  -Requires Unity Mathematics library to generate 3d noise (Windows > PackageManager > Mathematics)
